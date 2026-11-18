@@ -5,6 +5,8 @@ Jeu de gestion de parc d'attractions en mode sombre, pensé pour iPad (fonctionn
 **Jouer :** https://vifinocchio1601.github.io/Parc-mania/
 
 ## Le jeu
+- Spectacles programmés et mascotte du parc, sponsors qui donnent leur nom aux attractions
+- Suis un visiteur en direct, prévisions météo sur 7 jours avec assurance, écologie et label Parc Vert, défi du jour
 - Concurrent actif que tu peux racheter (OPA), saison d’hiver optionnelle (patinoire, marché de Noël, parade)
 - 34 trophées, rapports annuels détaillés, parking, navettes et billet combiné train + entrée
 - Deux modes : partie libre (avec tutoriel guidé) ou campagne de 6 missions scénarisées
