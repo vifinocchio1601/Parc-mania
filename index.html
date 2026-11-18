@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Parc Mania</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{display:flex;flex-direction:column;background:#f6f1e7;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",system-ui,sans-serif;color:#2b2416;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-user-select:none;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+#top{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(#17666b,#0f4c50);color:#fff;flex-wrap:wrap}
+.brand{font-weight:900;font-size:20px;margin-right:auto;letter-spacing:.2px}
+.pill{background:rgba(255,255,255,.14);border-radius:999px;padding:7px 12px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.neg{background:rgba(239,71,111,.6)}
+.seg{display:flex;background:rgba(0,0,0,.25);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:#fff;font-size:15px;padding:6px 11px;border-radius:999px;font-weight:800;min-width:40px}
+.seg button.on{background:#ffd166;color:#3a2a00}
+#nav{display:flex;gap:6px;padding:8px 12px;background:#fffaf0;border-bottom:1px solid #eadfc4;overflow-x:auto;scrollbar-width:none}
+#nav::-webkit-scrollbar{display:none}
+#nav button{flex:none;border:0;background:#f1e7d0;border-radius:12px;padding:10px 14px;font-weight:800;font-size:15px;color:#4a3b1a;position:relative}
+#nav button.on{background:#17666b;color:#fff}
+#nav .dot{position:absolute;top:4px;right:5px;width:9px;height:9px;border-radius:50%;background:#ef476f}
+#main{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.wrapc{max-width:1200px;margin:0 auto}
+.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;font-size:14.5px;background:#ffd166;color:#3a2a00;white-space:nowrap}
+.btn.teal{background:#17666b;color:#fff}.btn.sec{background:#efe4c8;color:#4a3b1a}.btn.red{background:#ef476f;color:#fff}
+.btn.sm{padding:8px 11px;font-size:13.5px}
+.btn:disabled{opacity:.4}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 1px 0 #eadfc4}
+.kpi .k{font-size:12.5px;color:#7a6a45;font-weight:700}
+.kpi .v{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .s{font-size:12px;color:#7a6a45;margin-top:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+.panel{background:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 1px 0 #eadfc4;margin-bottom:12px}
+.two .panel{margin-bottom:0}
+.panel h3{margin:0 0 10px;font-size:13px;color:#17666b;text-transform:uppercase;letter-spacing:.6px}
+.bar{height:8px;background:#efe6d2;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:#2a9d8f;transition:width .4s}
+.need{margin:9px 0}
+.need .h{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:4px}
+.news{font-size:14px;line-height:1.35}
+.news div{padding:6px 0;border-bottom:1px solid #f1e9d6;display:flex;gap:8px}
+.news div:last-child{border:0}
+.news .t{color:#a08d5e;font-weight:800;font-variant-numeric:tabular-nums;flex:none}
+.th{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f1e9d6;font-size:14px}
+.th:last-child{border:0}
+.th .c{margin-left:auto;font-weight:900;color:#17666b}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+td,th{padding:7px 4px;text-align:right;border-bottom:1px solid #f1e9d6}
+td:first-child,th:first-child{text-align:left}
+th{font-size:12px;color:#7a6a45}
+.pos{color:#2a9d8f;font-weight:800}.negt{color:#ef476f;font-weight:800}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.toolbar .info{font-weight:700;font-size:15px;margin-right:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:#fff;border-radius:18px;padding:14px;box-shadow:0 1px 0 #eadfc4;display:flex;flex-direction:column;gap:9px}
+.ch{display:flex;align-items:center;gap:10px}
+.ch .big{font-size:34px;line-height:1}
+.ch b{font-size:16px;display:block}
+.lvl{font-size:12.5px;color:#d4a017;font-weight:800;display:block;white-space:nowrap}
+.ch>div{min-width:0;flex:1}
+.st{margin-left:auto;font-size:12px;font-weight:800;border-radius:999px;padding:4px 9px;white-space:nowrap}
+.st.ok{background:#d8f3dc;color:#1b4332}.st.wait{background:#fff3c4;color:#7a5b00}.st.ko{background:#ffd6de;color:#9d0208}
+.mini{font-size:13px;color:#6b5a33;display:flex;justify-content:space-between;gap:8px}
+.mini b{color:#2b2416}
+.stp{display:flex;align-items:center;gap:6px}
+.stp button{width:40px;height:40px;border-radius:12px;border:0;background:#17666b;color:#fff;font-size:21px;font-weight:900}
+.stp b{min-width:58px;text-align:center;font-size:17px;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1e9d6}
+.row:last-child{border:0}
+.row .l{font-weight:700;font-size:15px}
+.row .l small{display:block;font-weight:500;color:#7a6a45;font-size:12.5px;margin-top:2px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.empty{background:#fff;border:2px dashed #e0d3b2;border-radius:18px;padding:22px;text-align:center;color:#7a6a45;font-weight:600}
+.empty .btn{margin-top:10px}
+.cta{background:linear-gradient(135deg,#ffd166,#f4a261);border-radius:18px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;font-weight:700}
+.cta .btn{margin-left:auto;background:#17666b;color:#fff}
+.goal{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f1e9d6}
+.goal .ic{font-size:22px;width:30px;text-align:center}
+#wrap{position:fixed;inset:0;background:rgba(10,30,30,.45);display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+#sheet{background:#fffaf0;border-radius:22px;width:min(640px,100%);max-height:88vh;overflow:auto;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+#sheet h2{margin:0 0 4px;font-size:22px}
+#sheet h3{margin:16px 0 8px;font-size:13px;color:#17666b;text-transform:uppercase;letter-spacing:.6px}
+#sheet p{margin:7px 0;line-height:1.45}
+.sub{color:#7a6a45;font-size:14px}
+.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.ci{background:#fff;border:2px solid #eadfc4;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.ci.locked{opacity:.5}
+.ci .e{font-size:30px}
+.ci b{font-size:15px}
+.ci .d{font-size:12.5px;color:#7a6a45;line-height:1.35}
+.ci .btn{margin-top:6px}
+.sheetacts{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+#toasts{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:92%;z-index:20}
+.toast{background:rgba(30,30,30,.9);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;animation:tin .25s ease-out;text-align:center}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}}
+.goalbar{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:10px 14px;margin-bottom:12px;font-weight:700;font-size:14px;box-shadow:0 1px 0 #eadfc4}
+.goalbar .bar{flex:1;min-width:80px;max-width:220px}
+</style>
+</head>
+<body>
+<div id="top">
+  <div class="brand">🎡 Parc Mania</div>
+  <div class="pill" id="hMoney"></div>
+  <div class="pill" id="hGuests"></div>
+  <div class="pill" id="hRating"></div>
+  <div class="pill" id="hTime"></div>
+  <div class="seg" id="speed"><button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button></div>
+</div>
+<div id="nav"></div>
+<div id="main"><div class="wrapc" id="content"></div></div>
+<div id="wrap"><div id="sheet"></div></div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+// ====================== CATALOGUE ======================
+const OPEN=540, CLOSE=1260, MS_PER_MIN=200, SAVE_KEY='parcmania_gestion_v1';
+const CATALOG={
+  teacups:{t:'ride',name:'Tasses folles',e:'☕',cost:2500,plots:2,exc:2.5,cap:12,dur:5,price:2,upkeep:40,d:'Petite attraction familiale, idéale pour démarrer.'},
+  carousel:{t:'ride',name:'Carrousel',e:'🎠',cost:3500,plots:2,exc:3,cap:14,dur:6,price:3,upkeep:50,d:'Un classique que petits et grands adorent.'},
+  bumper:{t:'ride',name:'Autos tamponneuses',e:'🚗',cost:5000,plots:2,exc:4,cap:10,dur:5,price:3,upkeep:70,unlock:40,d:'Très populaire auprès des ados.'},
+  ferris:{t:'ride',name:'Grande roue',e:'🎡',cost:7000,plots:2,exc:4.5,cap:18,dur:10,price:4,upkeep:80,unlock:100,d:'Grande capacité, vue imprenable sur le parc.'},
+  haunted:{t:'ride',name:'Maison hantée',e:'👻',cost:8500,plots:2,exc:5.5,cap:12,dur:7,price:5,upkeep:100,unlock:200,d:'Frissons garantis, peu de pannes.'},
+  flume:{t:'ride',name:'Rivière rapide',e:'🛶',cost:11000,plots:3,exc:6.5,cap:16,dur:7,price:5,upkeep:130,unlock:350,d:'Rafraîchissante, encore plus prisée par grosse chaleur.'},
+  drop:{t:'ride',name:'Tour de chute',e:'🗼',cost:14000,plots:2,exc:8,cap:12,dur:4,price:6,upkeep:170,unlock:550,d:'Sensations fortes sur peu de terrain.'},
+  coaster:{t:'ride',name:'Montagnes russes',e:'🎢',cost:22000,plots:4,exc:10,cap:24,dur:5,price:8,upkeep:250,unlock:800,d:'L’attraction phare qui fait venir les foules.'},
+  rocket:{t:'ride',name:'Space Rocket',e:'🚀',cost:32000,plots:4,exc:12,cap:20,dur:5,price:10,upkeep:330,unlock:1500,d:'Le summum des sensations. Prestige maximal.'},
+  burger:{t:'shop',kind:'food',name:'Burgers',e:'🍔',cost:800,plots:1,price:5,value:7,upkeep:30,rate:2,d:'Calme la faim des visiteurs.'},
+  drinks:{t:'shop',kind:'drink',name:'Boissons',e:'🥤',cost:600,plots:1,price:3,value:4,upkeep:20,rate:3,d:'Indispensable par beau temps.'},
+  pizza:{t:'shop',kind:'food',name:'Pizzeria',e:'🍕',cost:1000,plots:1,price:6,value:8,upkeep:35,rate:2,unlock:60,d:'Plus chère, mais très appréciée.'},
+  icecream:{t:'shop',kind:'ice',name:'Glacier',e:'🍦',cost:900,plots:1,price:3,value:5,upkeep:25,rate:3,unlock:120,d:'Faim et soif à la fois. Cartonne en été.'},
+  balloons:{t:'shop',kind:'souvenir',name:'Ballons',e:'🎈',cost:500,plots:1,price:3,value:5,upkeep:15,rate:3,unlock:80,d:'Petit plaisir qui rend les visiteurs heureux.'},
+  umbrella:{t:'shop',kind:'umbrella',name:'Parapluies',e:'☂️',cost:700,plots:1,price:6,value:9,upkeep:15,rate:3,unlock:150,d:'Ne se vend que les jours de pluie… mais alors, beaucoup !'},
+  gifts:{t:'shop',kind:'souvenir',name:'Boutique souvenirs',e:'🎁',cost:1200,plots:1,price:8,value:12,upkeep:30,rate:2,unlock:250,d:'Gros panier moyen chez les visiteurs ravis.'},
+  toilet:{t:'shop',kind:'toilet',name:'Toilettes',e:'🚻',cost:700,plots:1,price:0,value:2,upkeep:20,rate:4,d:'Sans toilettes, les visiteurs partent vite.'},
+};
+for(const k in CATALOG){CATALOG[k].id=k;CATALOG[k].unlock=CATALOG[k].unlock||0;}
+const DECOR={
+  flowers:{name:'Massifs de fleurs',e:'🌷',cost:200,pts:2,upkeep:2},
+  trees:{name:'Rangée d’arbres',e:'🌳',cost:400,pts:4,upkeep:3},
+  benches:{name:'Bancs à l’ombre',e:'🪑',cost:300,pts:2,upkeep:2},
+  statue:{name:'Statue',e:'🗿',cost:1000,pts:8,upkeep:5},
+  fountain:{name:'Fontaine',e:'⛲',cost:1800,pts:14,upkeep:10},
+  garden:{name:'Jardin à thème',e:'🏯',cost:4500,pts:32,upkeep:20,unlock:300},
+};
+const CAMPAIGNS={
+  posters:{name:'Affiches en ville',e:'🪧',cost:500,boost:.2,days:2},
+  radio:{name:'Spot radio',e:'📻',cost:2000,boost:.5,days:3},
+  tv:{name:'Publicité TV',e:'📺',cost:6000,boost:1,days:4,unlock:400},
+};
+const WEATHER={
+  sun:{e:'☀️',n:'Ensoleillé',arr:1.15,thirst:1.3},
+  cloud:{e:'⛅',n:'Nuageux',arr:1,thirst:1},
+  rain:{e:'🌧️',n:'Pluie',arr:.55,thirst:.8},
+  heat:{e:'🥵',n:'Canicule',arr:1.05,thirst:1.9},
+};
+const THOUGHTS={
+  great:{e:'😍',t:'Ce parc est génial !',good:1},
+  pretty:{e:'🌸',t:'Quel joli parc !',good:1},
+  cheap:{e:'👍',t:'L’entrée n’est vraiment pas chère',good:1},
+  fun:{e:'🤩',t:'Cette attraction était incroyable !',good:1},
+  expensive:{e:'💸',t:'Cette attraction est beaucoup trop chère'},
+  shopExp:{e:'🏷️',t:'Les prix des boutiques sont abusés'},
+  entryHigh:{e:'🎟️',t:'Le prix d’entrée est exorbitant'},
+  hungry:{e:'🍔',t:'J’ai faim et il n’y a rien à manger'},
+  thirsty:{e:'🥤',t:'J’ai soif, il n’y a rien à boire'},
+  toilet:{e:'🚻',t:'Mais où sont les toilettes ?!'},
+  dirty:{e:'🤢',t:'Les allées sont vraiment sales'},
+  queue:{e:'⏳',t:'Les files d’attente sont interminables'},
+  broken:{e:'🔧',t:'L’attraction que je voulais est en panne'},
+  nocash:{e:'🪙',t:'Je n’ai plus assez d’argent'},
+  bored:{e:'🥱',t:'Il n’y a pas assez d’attractions'},
+  wet:{e:'💧',t:'Je suis trempé, il me faut un parapluie'},
+  bad:{e:'😠',t:'Je rentre, ce parc est nul'},
+};
+const GOALS=[
+  {t:'Construis ta première attraction',p:()=>rides().length/1,r:1000},
+  {t:'Ouvre un stand de nourriture et un de boissons',p:()=>(hasKind('food')+hasKind('drink'))/2,r:800},
+  {t:'Accueille 50 visiteurs',p:()=>S.totalGuests/50,r:2000},
+  {t:'Installe des toilettes et 3 poubelles',p:()=>(hasKind('toilet')+Math.min(3,S.bins)/3)/2,r:1500},
+  {t:'Atteins une note de 60 %',p:()=>S.rating/60,r:3000},
+  {t:'Possède 6 attractions',p:()=>rides().length/6,r:5000},
+  {t:'Améliore une attraction au niveau 3',p:()=>S.b.some(b=>b.lvl>=3)?1:0,r:4000},
+  {t:'Accueille 1 000 visiteurs au total',p:()=>S.totalGuests/1000,r:8000},
+  {t:'Construis les Montagnes russes',p:()=>S.b.some(b=>b.type==='coaster')?1:0,r:10000},
+  {t:'Encaisse 5 000 € de recettes en une journée',p:()=>Math.max(S.bestDay||0,dayIncome())/5000,r:12000},
+  {t:'Parc légendaire : 250 visiteurs en même temps et 80 % de note',p:()=>Math.min(guests.length/250,S.rating/80),r:25000},
+];
+
+const SEGS={
+  family:{n:'Familles',e:'👨‍👩‍👧',share:.45,cash:[40,160],beauty:1,names:['Julie','Thomas','Sarah','Nicolas','Laura','Kevin','Émilie','Maxime'],age:[29,46]},
+  teen:{n:'Ados',e:'🧑‍🎤',share:.3,cash:[15,75],beauty:.5,names:['Lucas','Inès','Noah','Léa','Hugo','Chloé','Enzo','Manon'],age:[14,19]},
+  senior:{n:'Seniors',e:'🧓',share:.25,cash:[50,180],beauty:1.7,names:['Monique','Jacques','Christiane','Michel','Françoise','André','Josiane','Marcel'],age:[62,79]},
+};
+function aff(seg,e){if(seg==='family')return e<=6?1.2:.6;if(seg==='teen')return e>=5?1.5:e>=3.5?.8:.4;return e<=4.5?1.3:.35;}
+const ART={teacups:'les Tasses folles',carousel:'le Carrousel',bumper:'les Autos tamponneuses',ferris:'la Grande roue',haunted:'la Maison hantée',flume:'la Rivière rapide',drop:'la Tour de chute',coaster:'les Montagnes russes',rocket:'le Space Rocket'};
+const cap1=t=>t.charAt(0).toUpperCase()+t.slice(1);
+const DIFFS={easy:{n:'Détente',e:'🌴',money:25000,up:.6,cash:1.2,bank:-25000,d:'25 000 € au départ, charges réduites, visiteurs plus dépensiers.'},
+  normal:{n:'Normal',e:'🎢',money:15000,up:1,cash:1,bank:-15000,d:'L’expérience équilibrée.'},
+  hard:{n:'Magnat',e:'🦈',money:8000,up:1.4,cash:.85,bank:-6000,d:'8 000 € au départ, charges lourdes, faillite rapide.'}};
+const D=()=>DIFFS[S.diff||'normal'];
+const pick=a=>a[(Math.random()*a.length)|0];
+const maxRel=b=>Math.max(50,100-(b.age||0)*1.5);
+const OFFERS=[
+  {id:'private',e:'🏢',t:'Soirée d’entreprise',make:()=>({co:pick(['Proximus','Delhaize','Spa Monopole','Ethias','Cockerill']),amt:Math.round(3000+S.rating*40)}),
+   d:o=>`La société ${o.co} veut privatiser le parc ce soir de 19h à 21h. Tous les visiteurs devront partir à 19h.`,gain:o=>`+${fmt(o.amt)} ce soir`,
+   accept:o=>{S.privateAt=19*60;S.privateAmt=o.amt;}},
+  {id:'film',e:'🎬',t:'Tournage publicitaire',make:()=>{const r=rides();if(!r.length)return null;const b=r.slice().sort((a,c)=>exc(c)-exc(a))[0];return{bid:b.id,name:C(b).name,amt:Math.round(1500+C(b).cost*.12)};},
+   d:o=>`Une marque veut tourner une pub sur ${o.name}. L’attraction sera fermée au public toute la journée.`,gain:o=>`+${fmt(o.amt)} tout de suite`,
+   accept:o=>{S.money+=o.amt;S.today.events+=o.amt;const b=S.b.find(x=>x.id===o.bid);if(b)b.closed=true;}},
+  {id:'sponsor',e:'🪧',t:'Contrat de sponsoring',make:()=>({amt:Math.round(2500+usedPlots()*150)}),
+   d:o=>`Une marque de soda propose ${fmt(o.amt)} pour couvrir le parc de panneaux publicitaires pendant 5 jours. Le parc sera nettement moins joli (−25 % de beauté).`,gain:o=>`+${fmt(o.amt)} tout de suite`,
+   accept:o=>{S.money+=o.amt;S.today.events+=o.amt;S.sponsorDays=5;}},
+  {id:'influencer',e:'🤳',t:'Visite d’un influenceur',make:()=>({name:pick(['@LeaFunParks','@MaxiFrissons','@ThrillBelgium'])}),
+   d:o=>`${o.name} (450 000 abonnés) veut visiter le parc aujourd’hui et en parler. Si ta note est d’au moins 70 % ce soir, l’affluence explose pendant 3 jours. Sinon, gare à la critique…`,gain:()=>'Pari risqué',
+   accept:o=>{S.influencer=o.name;}},
+  {id:'concert',e:'🎸',t:'Concert dans le parc',make:()=>({cost:Math.round(2000+S.rating*20)}),
+   d:o=>`Un groupe local propose de jouer aujourd’hui dans le parc pour ${fmt(o.cost)}. Il attirera beaucoup plus de visiteurs toute la journée.`,gain:()=>'+60 % de visiteurs aujourd’hui',
+   accept:o=>{if(!spend(o.cost,'marketing'))return false;S.concert=true;}},
+];
+const DOW=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'],DOWM=[.8,.8,1.1,.85,1,1.5,1.4];
+const dowOf=d=>(d-1)%7, isHoliday=d=>Math.floor((d-1)/7)%4===3;
+const ISSUES={expensive:'les attractions soient si chères',shopExp:'les boutiques soient si chères',entryHigh:'l’entrée soit hors de prix',hungry:'on ne trouve rien à manger',
+  thirsty:'il n’y ait rien à boire',toilet:'on ne trouve pas de toilettes',dirty:'le parc soit si sale',queue:'les files soient interminables',broken:'tant d’attractions soient en panne',
+  nocash:'tout coûte si cher',bored:'il n’y ait pas grand-chose à faire',wet:'on n’ait pas pu acheter de parapluie sous la pluie',bad:'on se soit ennuyés'};
+const ISSUES_NEG={expensive:'les attractions sont trop chères',shopExp:'les prix des boutiques sont abusés',entryHigh:'l’entrée est hors de prix',hungry:'impossible de trouver à manger',
+  thirsty:'rien à boire',toilet:'pas de toilettes',dirty:'le parc est sale',queue:'des files d’attente interminables',broken:'trop d’attractions en panne',
+  nocash:'tout coûte trop cher',bored:'pas grand-chose à faire',wet:'trempés, et aucun parapluie à acheter',bad:'on s’est ennuyés'};
+
+// ====================== OUTILS ======================
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const fmt=n=>(n<0?'−':'')+Math.abs(Math.round(n)).toLocaleString('fr-BE')+' €';
+const num=n=>Math.round(n).toLocaleString('fr-BE');
+const hhmm=t=>`${String(Math.floor(Math.min(t,1439)/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+const C=b=>CATALOG[b.type];
+const rides=()=>S.b.filter(b=>C(b).t==='ride');
+const shops=()=>S.b.filter(b=>C(b).t==='shop');
+const hasKind=k=>S.b.some(b=>C(b).kind===k)?1:0;
+const usedPlots=()=>S.b.reduce((s,b)=>s+C(b).plots,0);
+const dayIncome=()=>S.today.entry+S.today.rides+S.today.shops;
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const pickWeather=()=>{const r=Math.random();return r<.4?'sun':r<.75?'cloud':r<.92?'rain':'heat';};
+const exc=b=>C(b).exc*(1+.15*(b.lvl-1));
+const cap=b=>Math.round(C(b).cap*(1+.35*(b.lvl-1)));
+const rate=b=>C(b).rate*(1+.5*(b.lvl-1));
+const upkeep=b=>Math.round(C(b).upkeep*2*D().up*(1+.4*(b.lvl-1)));
+const fixedCosts=()=>200+15*usedPlots();
+const upCost=b=>Math.round(C(b).cost*.6*b.lvl);
+const landCost=()=>Math.round(3000*Math.pow(1+S.landBuys,1.4));
+const fairRide=b=>Math.round(exc(b)*1.1+1);
+
+// ====================== ÉTAT ======================
+let S=null, guests=[], speed=1, acc=0, last=0, modal=false, tab='home', holding=false, confirmKey=null;
+function newDay(){return{entry:0,rides:0,shops:0,guests:0,build:0,upkeep:0,wages:0,marketing:0,interest:0,events:0};}
+function newGame(){
+  S={diff:'normal',rival:{name:'WonderLand',rating:58},money:15000,day:1,time:OPEN,entry:5,plots:12,landBuys:0,bins:0,janitors:0,mechanics:0,animators:0,
+    decor:{},campaigns:[],loan:0,dirt:0,totalGuests:0,rating:50,rb:{hap:65,beauty:0,variety:0,clean:100},
+    b:[],nid:1,goal:0,today:newDay(),history:[],thoughts:{},news:[],bestDay:0,series:[],
+    weather:'sun',forecast:pickWeather(),event:null,press:false,seenWelcome:false,reviews:[]};
+  guests=[];
+  news('🎉 Bienvenue ! Ton terrain de 12 emplacements est prêt.');
+}
+function rtInit(b){b.queue=[];b.riders=[];b.running=false;b.timer=0;b.wait=0;b.acc=0;}
+function news(txt){S.news.unshift({t:hhmm(S.time),d:S.day,txt});if(S.news.length>40)S.news.length=40;}
+function thought(k,g){S.thoughts[k]=(S.thoughts[k]||0)+1;if(g&&!THOUGHTS[k].good)g.issue=k;}
+
+// ====================== SIMULATION ======================
+function beautyScore(){let p=0;for(const k in S.decor)p+=DECOR[k].pts*S.decor[k];return clamp(p*100/(20+usedPlots()*5),0,100)*(S.sponsorDays>0?.75:1);}
+function cleanScore(){return 100*Math.exp(-S.dirt/(40+guests.length*.2));}
+function appeal(){let a=0;for(const b of rides())a+=exc(b)*(b.broken||b.closed?.5:1);return a;}
+function compF(){return clamp(1+(S.rating-S.rival.rating)/80,.65,1.35);}
+function fairEntry(){return Math.round(3+Math.min(60,appeal()*.9));}
+function marketingBoost(){let m=0;for(const c of S.campaigns)m=Math.max(m,CAMPAIGNS[c.k].boost);return m;}
+function arrivalRate(){
+  const ap=appeal();if(ap===0||guests.length>=700||S.time>CLOSE-90)return 0;
+  const fair=fairEntry();
+  const pf=S.entry<=fair?1+(fair-S.entry)/fair*.3:Math.max(0,1-(S.entry-fair)/fair*1.4);
+  const tf=clamp(1-((S.time-13*60)/(6*60))**2*.6,.3,1);
+  return Math.pow(Math.min(ap,80)/80,.85)*2.6*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*compF()*(S.rivalPromo?.85:1)*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
+}
+function segWeights(){const w={};for(const k in SEGS){let a=1;for(const b of rides())if(!b.broken)a+=exc(b)*aff(k,exc(b));w[k]=SEGS[k].share*a*(k==='family'&&isHoliday(S.day)?1.5:1)*(k==='teen'&&dowOf(S.day)===2?1.4:1);}return w;}
+function spawn(){
+  const w=segWeights();let tot=0;for(const k in w)tot+=w[k];let r=Math.random()*tot,seg='family';for(const k in w){r-=w[k];if(r<=0){seg=k;break;}}
+  const cash=rnd(...SEGS[seg].cash)*D().cash;if(cash<S.entry)return;
+  const g={st:'walk',t:rnd(2,5),target:null,leaving:false,hunger:rnd(0,35),thirst:rnd(0,35),bladder:rnd(0,30),fun:rnd(10,40),
+    seg,happy:rnd(68,85),cash:cash-S.entry,stay:rnd(150,420),visited:new Set(),souv:false,umb:false,qT:0};
+  S.money+=S.entry;S.today.entry+=S.entry;S.today.guests++;S.totalGuests++;
+  const fair=fairEntry();
+  if(S.entry>fair*1.3){g.happy-=14;thought('entryHigh',g);}else if(S.entry<=fair*.75&&Math.random()<.3)thought('cheap',g);
+  guests.push(g);
+  for(const k in CATALOG)if(CATALOG[k].unlock&&CATALOG[k].unlock===S.totalGuests){toast(`🔓 Débloqué : ${CATALOG[k].e} ${CATALOG[k].name}`);news(`🔓 Nouvelle construction disponible : ${CATALOG[k].e} ${CATALOG[k].name}`);}
+}
+const walkTime=()=>rnd(2,4)+usedPlots()*.06;
+function decide(g){
+  if(S.time>=(S.privateAt||CLOSE)||g.stay<=0||g.happy<12||(g.cash<3&&Math.random()<.3)){
+    if(g.happy<12)thought('bad',g);else if(g.cash<3)thought('nocash',g);
+    g.leaving=true;g.st='walk';g.t=walkTime();return;}
+  let best=null,bs=.25,rideOpt=false;
+  for(const b of S.b){
+    const it=C(b);let s=0;
+    if(it.t==='ride'){
+      if(b.broken||b.closed||b.price>g.cash)continue;rideOpt=true;
+      s=(100-g.fun)/100*exc(b)*aff(g.seg,exc(b))*(g.visited.has(b.id)?.3:1)/(1+b.queue.length/cap(b)*.8);
+      if(b.type==='flume'&&S.weather==='heat')s*=1.6;
+    }else{
+      if(b.price>g.cash)continue;
+      switch(it.kind){
+        case'food':s=g.hunger>45?g.hunger/30:0;break;
+        case'drink':s=g.thirst>45?g.thirst/30:0;break;
+        case'ice':s=(g.hunger>30||g.thirst>30)?(g.hunger+g.thirst)/95*(S.weather==='heat'||S.weather==='sun'?1.4:1):0;break;
+        case'souvenir':s=(!g.souv&&g.happy>65&&g.cash>b.price+10)?(g.seg==='senior'?.9:.6):0;break;
+        case'umbrella':s=(S.weather==='rain'&&!g.umb)?3:0;break;
+        case'toilet':s=g.bladder>55?g.bladder/18:0;break;
+      }
+      s/=1+b.queue.length/(rate(b)*4);
+    }
+    if(s<=0)continue;s*=rnd(.75,1.25);
+    if(s>bs){bs=s;best=b;}
+  }
+  g.st='walk';
+  if(best){g.target=best.id;g.t=walkTime();return;}
+  g.target=null;g.t=rnd(4,9);
+  if(g.hunger>80&&Math.random()<.3)thought('hungry',g);
+  else if(g.thirst>80&&Math.random()<.3)thought('thirsty',g);
+  else if(g.bladder>85&&Math.random()<.4)thought('toilet',g);
+  else if(g.fun<20&&Math.random()<.25)thought(rideOpt?'queue':'bored');
+}
+function arrive(g){
+  const b=S.b.find(x=>x.id===g.target);g.target=null;
+  if(!b)return decide(g);
+  const it=C(b);
+  if(it.t==='ride'){
+    if(b.closed)return decide(g);
+    if(b.broken){thought('broken',g);g.happy-=4;return decide(g);}
+    if(b.price>fairRide(b)*1.7&&Math.random()<.8){thought('expensive',g);g.happy-=3;g.visited.add(b.id);return decide(g);}
+    if(b.price>g.cash){thought('nocash',g);return decide(g);}
+    if(b.queue.length>cap(b)*3){thought('queue',g);g.happy-=3;g.visited.add(b.id);return decide(g);}
+    pay(g,b,'rides');b.queue.push(g);g.st='queue';g.qT=0;g.at=b.id;return;
+  }
+  if(b.price>it.value*1.8&&Math.random()<.8){thought('shopExp',g);g.happy-=3;return decide(g);}
+  if(b.price>g.cash){thought('nocash',g);return decide(g);}
+  if(b.queue.length>rate(b)*10){thought('queue',g);g.happy-=2;return decide(g);}
+  b.queue.push(g);g.st='queue';g.qT=0;g.at=b.id;
+}
+function pay(g,b,k){if(!b.price)return;g.cash-=b.price;S.money+=b.price;S.today[k]+=b.price;b.revenue+=b.price;b.todayRev=(b.todayRev||0)+b.price;}
+function serve(g,b){
+  const it=C(b);pay(g,b,'shops');b.visitors++;b.todayVis=(b.todayVis||0)+1;
+  const litter=()=>{const cover=Math.min(.95,S.bins*35/Math.max(guests.length,20));S.dirt+=(1-cover)*.8;};
+  switch(it.kind){
+    case'food':g.hunger=Math.max(0,g.hunger-75);g.bladder+=12;g.happy+=3;litter();break;
+    case'drink':g.thirst=Math.max(0,g.thirst-75);g.bladder+=25;g.happy+=2;litter();break;
+    case'ice':g.hunger=Math.max(0,g.hunger-25);g.thirst=Math.max(0,g.thirst-35);g.happy+=5;litter();break;
+    case'souvenir':g.happy+=8;g.souv=true;break;
+    case'umbrella':g.umb=true;g.happy+=6;break;
+    case'toilet':g.bladder=0;g.happy+=2;break;
+  }
+  g.st='busy';g.t=it.kind==='toilet'?3:2;
+}
+function review(g){
+  if(Math.random()>.3)return;
+  const sg=SEGS[g.seg],st=clamp(Math.round(g.happy/20),1,5),name=sg.names[(Math.random()*sg.names.length)|0],age=Math.round(rnd(...sg.age));
+  let txt;const best=g.best||'le parc';
+  if(st>=4){const pos=[`J’ai adoré ${best} ! On reviendra.`,g.seg==='family'?`Super journée en famille, les enfants ont adoré ${best}.`:g.seg==='teen'?`${cap1(best)}, c’était ouf !`:`Un parc charmant et très bien tenu.`];
+    txt=pos[(Math.random()*2)|0];if(st===5&&g.seg==='senior')txt='Un endroit magnifique, on s’y sent bien. Bravo à toute l’équipe.';}
+  else if(st===3)txt=g.issue?`Journée sympa, dommage que ${ISSUES[g.issue]}.`:'Correct, sans plus.';
+  else txt=g.issue?`Déçu : ${ISSUES_NEG[g.issue]}.`:'On s’est ennuyés, on ne reviendra pas.';
+  S.reviews.unshift({name,age,seg:g.seg,st,txt,d:S.day});if(S.reviews.length>30)S.reviews.length=30;
+}
+function release(g){g.st='busy';g.t=1;}
+
+function guestTick(g){
+  const W=WEATHER[S.weather];
+  g.hunger=Math.min(100,g.hunger+.07);g.thirst=Math.min(100,g.thirst+.09*W.thirst);
+  g.bladder=Math.min(100,g.bladder+.035);g.fun=Math.max(0,g.fun-.14);
+  let d=0;
+  if(g.hunger>75)d-=.12;if(g.thirst>75)d-=.12;if(g.bladder>85)d-=.25;if(g.fun<15)d-=.06;
+  if(g.st==='walk'){d+=S.rb.beauty/100*.08*SEGS[g.seg].beauty-.02;if(S.rb.clean<55){d-=.06;if(Math.random()<.01)thought('dirty',g);}
+    if(S.weather==='rain'&&!g.umb){d-=.05;if(Math.random()<.004)thought('wet',g);}}
+  if(S.animators>0)d+=.04*Math.min(1,S.animators*60/Math.max(guests.length,1));
+  if(g.st==='queue'){g.qT++;if(g.qT>20)d-=.12;}
+  g.happy=clamp(g.happy+d,0,100);g.stay--;
+  if(g.happy>85&&Math.random()<.003)thought('great',g);
+  else if(S.rb.beauty>60&&Math.random()<.003)thought('pretty',g);
+  if(g.st==='walk'){if(--g.t<=0){if(g.leaving){g.dead=true;review(g);}else if(g.target!=null)arrive(g);else decide(g);}}
+  else if(g.st==='busy'){if(--g.t<=0)decide(g);}
+  else if(g.st==='queue'&&g.qT>45&&Math.random()<.05){
+    const b=S.b.find(x=>x.id===g.at);if(b)b.queue=b.queue.filter(x=>x!==g);
+    g.happy-=5;thought('queue',g);decide(g);}
+}
+
+function tick(){
+  S.time++;const t=S.time;
+  if(t===CLOSE){for(const g of guests)if(g.st==='walk'&&!g.leaving){g.leaving=true;g.t=walkTime();}news('🌙 21h00 — fermeture des portes.');}
+  if(S.privateAt&&t===S.privateAt){for(const g of guests)if(!g.leaving){g.leaving=true;g.st='walk';g.t=walkTime();for(const b of S.b){b.queue=b.queue.filter(x=>x!==g);}}
+    S.money+=S.privateAmt;S.today.events+=S.privateAmt;news(`🏢 Soirée privée : le parc est réservé, +${fmt(S.privateAmt)}.`);toast(`🏢 Soirée privée : +${fmt(S.privateAmt)}`);}
+  if(t<(S.privateAt||CLOSE)){let lam=arrivalRate();while(lam>0){if(Math.random()<Math.min(1,lam))spawn();lam-=1;}}
+  if(S.event&&S.event.time===t)runEvent(S.event);
+  for(const g of guests)guestTick(g);
+  for(const b of S.b){
+    const it=C(b);
+    if(it.t==='shop'){
+      if(it.kind==='umbrella'&&S.weather!=='rain'){continue;}
+      b.acc+=rate(b);while(b.acc>=1&&b.queue.length){serve(b.queue.shift(),b);b.acc-=1;}if(!b.queue.length)b.acc=Math.min(b.acc,1);
+      continue;
+    }
+    if(b.broken){if(S.mechanics>0){b.repairT-=S.mechanics;if(b.repairT<=0){b.broken=false;b.rel=maxRel(b);news(`✅ Réparation terminée : ${it.e} ${it.name}`);}}continue;}
+    if(S.mechanics>0)b.rel=Math.min(maxRel(b),b.rel+.015*S.mechanics);
+    if(b.running){
+      if(--b.timer<=0){
+        const e=exc(b);
+        for(const r of b.riders){r.fun=Math.min(100,r.fun+e*7+10);r.happy=Math.min(100,r.happy+e*1.2+2);r.visited.add(b.id);if(e>=8&&Math.random()<.15)thought('fun',r);if(!r.bestExc||e>r.bestExc){r.bestExc=e;r.best=ART[b.type];}release(r);}
+        b.visitors+=b.riders.length;b.todayVis=(b.todayVis||0)+b.riders.length;b.riders=[];b.running=false;b.wait=0;
+      }
+    }else if(b.queue.length){
+      b.wait++;
+      if(b.queue.length>=cap(b)*.5||b.wait>=4){
+        if(Math.random()<(100-b.rel)/600){
+          b.broken=true;b.repairT=30;
+          for(const g of b.queue){g.happy-=6;thought('broken',g);g.visited.add(b.id);decide(g);}
+          b.queue=[];
+          news(`🔧 Panne : ${it.e} ${it.name}${S.mechanics?' — un mécanicien intervient.':' — aucun mécanicien pour réparer !'}`);
+          if(!S.mechanics)toast(`🔧 Panne : ${it.name}`);
+        }else{b.riders=b.queue.splice(0,cap(b));for(const r of b.riders)r.st='ride';b.running=true;b.timer=it.dur;b.rel=Math.max(20,b.rel-.25);}
+      }
+    }
+  }
+  S.dirt=Math.max(0,S.dirt-.6*S.janitors);
+  if(t%5===0)calcRating();
+  if(t%15===0)S.series.push(guests.length);
+  if(t%60===0)for(const k in S.thoughts)S.thoughts[k]*=.7;
+  guests=guests.filter(g=>!g.dead);
+  checkGoals();
+  if(t>=CLOSE&&(guests.length===0||t>=CLOSE+150))endDay();
+}
+function calcRating(){
+  let hap=S.rb.hap;if(guests.length){hap=0;for(const g of guests)hap+=g.happy;hap/=guests.length;}
+  const beauty=beautyScore(),clean=cleanScore();
+  const types=new Set(rides().map(b=>b.type)).size;
+  const kinds=['food','drink','toilet','ice','souvenir'].filter(k=>hasKind(k)).length;
+  const variety=clamp(types*13+kinds*5,0,100);
+  S.rb={hap,beauty,clean,variety};
+  S.rating=Math.round(S.rating*.6+(hap*.45+beauty*.2+variety*.2+clean*.15)*.4);
+}
+function runEvent(ev){
+  if(ev.type==='school'){const n=30+(Math.random()*30|0);for(let k=0;k<n;k++)spawn();news(`🚌 Une excursion scolaire arrive : ${n} élèves entrent dans le parc !`);toast('🚌 Excursion scolaire !');}
+  if(ev.type==='inspection'){
+    if(S.rb.clean>=60){S.money+=800;S.today.events+=800;news('🧑‍⚖️ Inspection sanitaire réussie : prime de 800 €.');toast('🧑‍⚖️ Inspection réussie : +800 €');}
+    else{S.money-=1500;S.today.events-=1500;news('🧑‍⚖️ Inspection sanitaire ratée : amende de 1 500 € pour manque de propreté.');toast('🧑‍⚖️ Amende : −1 500 €');}
+  }
+}
+function checkGoals(){
+  const G=GOALS[S.goal];if(!G)return;
+  if(G.p()>=1){S.money+=G.r;S.today.events+=G.r;S.goal++;news(`🏆 Objectif réussi : ${G.t} (+${fmt(G.r)})`);toast(`🏆 Objectif réussi ! +${fmt(G.r)}`);
+    if(S.goal>=GOALS.length)setTimeout(()=>openSheet(winHTML),600);}
+}
+function endDay(){
+  for(const b of S.b){for(const g of b.queue.concat(b.riders))g.dead=true;b.queue=[];b.riders=[];b.running=false;}
+  guests=[];
+  let up=fixedCosts();for(const b of S.b)up+=upkeep(b);for(const k in S.decor)up+=DECOR[k].upkeep*S.decor[k];
+  const wages=S.janitors*70+S.mechanics*100+S.animators*80,interest=Math.round(S.loan*.005);
+  S.today.upkeep=up;S.today.wages=wages;S.today.interest=interest;S.money-=up+wages+interest;
+  S.dirt*=.3;
+  const inc=dayIncome();S.bestDay=Math.max(S.bestDay||0,inc);
+  S.history.push({day:S.day,guests:S.today.guests,inc,exp:up+wages+interest+S.today.marketing,rating:S.rating});
+  if(S.history.length>14)S.history.shift();
+  if(S.influencer){if(S.rating>=70){S.buzz=3;news(`🤳 ${S.influencer} a adoré ton parc ! Sa vidéo cartonne : affluence en hausse pendant 3 jours.`);}
+    else{S.rating=Math.max(0,S.rating-8);news(`🤳 ${S.influencer} a publié une critique sévère : ta note chute de 8 points.`);}S.influencer=null;}
+  checkGoals();
+  if(S.money<D().bank){openSheet(bankruptHTML);return;}
+  openSheet(dayHTML);
+}
+function nextDay(){
+  S.day++;S.time=OPEN;S.today=newDay();S.series=[];
+  for(const b of S.b){b.yRev=(b.todayRev||0)-upkeep(b);b.todayVis=0;b.todayRev=0;b.closed=false;if(C(b).t==='ride'){b.age=(b.age||0)+1;b.rel=Math.min(b.rel,maxRel(b));if(b.age===25)news(`🧓 ${C(b).e} ${C(b).name} vieillit : pense à la rénover.`);}}
+  S.privateAt=null;S.concert=false;S.rivalPromo=false;if(S.buzz>0)S.buzz--;if(S.sponsorDays>0)S.sponsorDays--;
+  const rv=S.rival;rv.rating=clamp(rv.rating+rnd(-2,2.4)+(S.rating>rv.rating?.8:0),35,93);
+  const rr=Math.random();
+  if(rr<.07){rv.rating=Math.min(95,rv.rating+6);news(`🏰 ${rv.name} inaugure une nouvelle attraction : leur note grimpe à ${Math.round(rv.rating)} %.`);}
+  else if(rr<.13){S.rivalPromo=true;news(`🏷️ ${rv.name} lance une promo aujourd’hui : une partie du public part chez eux.`);}
+  S.campaigns=S.campaigns.map(c=>({...c,days:c.days-1})).filter(c=>c.days>0);
+  S.weather=S.forecast;S.forecast=pickWeather();S.press=false;S.event=null;
+  const r=Math.random();
+  if(r<.12){S.event={type:'school',time:600+(Math.random()*240|0)};}
+  else if(r<.22){S.event={type:'inspection',time:900};news('📋 Une inspection sanitaire est annoncée pour 15h00 aujourd’hui.');}
+  else if(r<.3&&S.rating>=55){S.press=true;news('📰 Un journal publie un article élogieux sur ton parc : affluence en hausse aujourd’hui !');}
+  news(`${WEATHER[S.weather].e} Jour ${S.day} — météo : ${WEATHER[S.weather].n}.`);
+  S.offer=null;
+  if(S.day>=3&&Math.random()<.3){const def=pick(OFFERS),o=def.make();if(o){o.id=def.id;S.offer=o;}}
+  save();closeSheet();render();
+  if(S.offer)openSheet(offerHTML);
+}
+
+// ====================== ACTIONS ======================
+function spend(c,k){if(S.money<c){toast('💸 Pas assez d’argent');return false;}S.money-=c;S.today[k||'build']+=c;return true;}
+function build(type){
+  const it=CATALOG[type];
+  if(S.totalGuests<it.unlock){toast(`🔒 Débloqué à ${num(it.unlock)} visiteurs`);return;}
+  if(usedPlots()+it.plots>S.plots){toast('📐 Plus assez de terrain : agrandis le parc');return;}
+  if(!spend(it.cost))return;
+  const b={id:S.nid++,type,lvl:1,price:it.price,visitors:0,revenue:0,rel:100,broken:false,repairT:0,todayVis:0,todayRev:0,age:0,yRev:null};rtInit(b);
+  S.b.push(b);news(`🏗️ Construction : ${it.e} ${it.name}`);toast(`${it.e} Ouverture : ${it.name}`);
+  closeSheet();if(it.t==='ride')tab='rides';else tab='shops';render();checkGoals();
+}
+function act(a,v,el){
+  const id=+v,b=S.b.find(x=>x.id===id);
+  switch(a){
+    case'tab':tab=v;confirmKey=null;break;
+    case'catalog':openSheet(()=>catalogHTML(v));return;
+    case'build':build(v);return;
+    case'price':if(b)b.price=clamp(b.price+ +el.dataset.d,0,60);break;
+    case'up':if(b&&b.lvl<3&&spend(upCost(b))){b.lvl++;b.rel=maxRel(b);news(`⬆️ ${C(b).e} ${C(b).name} passe au niveau ${b.lvl}.`);toast(`⬆️ ${C(b).name} : niveau ${b.lvl}`);checkGoals();}break;
+    case'repair':if(b&&b.broken&&spend(Math.round(C(b).cost*.08))){b.broken=false;b.rel=maxRel(b);toast('🔧 Réparée !');}break;
+    case'renov':if(b&&spend(Math.round(C(b).cost*.3))){b.age=0;b.rel=100;b.broken=false;news(`✨ Rénovation complète : ${C(b).e} ${C(b).name}`);toast('✨ Comme neuve !');}break;
+    case'offerYes':{const o=S.offer;S.offer=null;if(o){const def=OFFERS.find(x=>x.id===o.id);if(def.accept(o)!==false){news(`🤝 Offre acceptée : ${def.e} ${def.t}`);toast('🤝 Offre acceptée');}}closeSheet();render();return;}
+    case'offerNo':{const o=S.offer;S.offer=null;if(o)news(`🙅 Offre refusée : ${OFFERS.find(x=>x.id===o.id).t}`);closeSheet();render();return;}
+    case'sell':if(confirmKey!=='sell'+id){confirmKey='sell'+id;break;}
+      if(b){for(const g of b.queue.concat(b.riders))decide(g);S.b=S.b.filter(x=>x!==b);const r=Math.round(C(b).cost*.5);S.money+=r;news(`💥 Démolition : ${C(b).e} ${C(b).name} (+${fmt(r)})`);}confirmKey=null;break;
+    case'land':if(spend(landCost())){S.plots+=4;S.landBuys++;news('📐 Le parc s’agrandit de 4 emplacements.');toast('📐 +4 emplacements');}break;
+    case'entry':S.entry=clamp(S.entry+ +v,0,99);break;
+    case'bins':if(+v>0){if(spend(60))S.bins++;}else if(S.bins>0)S.bins--;checkGoals();break;
+    case'staff':{const k=el.dataset.k;S[k]=clamp(S[k]+ +v,0,30);break;}
+    case'decor':{const d=DECOR[v];if(S.totalGuests<(d.unlock||0)){toast(`🔒 Débloqué à ${d.unlock} visiteurs`);return;}if(spend(d.cost)){S.decor[v]=(S.decor[v]||0)+1;calcRating();toast(`${d.e} ${d.name} ajouté`);}break;}
+    case'camp':{const c=CAMPAIGNS[v];if(S.totalGuests<(c.unlock||0)){toast(`🔒 Débloqué à ${c.unlock} visiteurs`);return;}
+      if(S.campaigns.some(x=>x.k===v)){toast('Cette campagne est déjà en cours');return;}
+      if(spend(c.cost,'marketing')){S.campaigns.push({k:v,days:c.days});news(`📣 Campagne lancée : ${c.e} ${c.name} (${c.days} jours).`);toast('📣 Campagne lancée');}break;}
+    case'borrow':if(S.loan<50000){S.loan+=10000;S.money+=10000;news('🏦 Emprunt de 10 000 € contracté.');}break;
+    case'repay':if(S.loan>0&&S.money>=10000){S.loan-=10000;S.money-=10000;news('🏦 10 000 € de prêt remboursés.');}else toast('💸 Il faut 10 000 € pour rembourser');break;
+    case'close':closeSheet();return;
+    case'next':nextDay();return;
+    case'start':if(v&&DIFFS[v]){S.diff=v;S.money=DIFFS[v].money;}S.seenWelcome=true;save();closeSheet();render();return;
+    case'new':if(confirmKey!=='new'){confirmKey='new';break;}
+    case'newOk':try{localStorage.removeItem(SAVE_KEY);}catch(_){}newGame();confirmKey=null;tab='home';render();openSheet(welcomeHTML);return;
+  }
+  if(a!=='sell'&&a!=='new')confirmKey=null;
+  render();
+}
+
+// ====================== INTERFACE ======================
+const TABS=[['home','📊 Tableau de bord'],['rides','🎢 Attractions'],['shops','🍔 Boutiques'],['park','🌳 Parc & équipe'],['fin','💰 Finances & pub'],['goals','🎯 Objectifs']];
+function stp(a,v,val,extra){return`<div class="stp"><button data-a="${a}" data-v="${v}" data-d="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="${v}" data-d="1" ${extra||''}>+</button></div>`;}
+function stp2(a,val,extra){return`<div class="stp"><button data-a="${a}" data-v="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="1" ${extra||''}>+</button></div>`;}
+function barH(v,col){return`<div class="bar"><i style="width:${clamp(v,0,100)}%;background:${col||(v<40?'#ef476f':v<65?'#ffb703':'#2a9d8f')}"></i></div>`;}
+function header(){
+  const m=$('#hMoney');m.textContent='💰 '+fmt(S.money);m.classList.toggle('neg',S.money<0);
+  $('#hGuests').textContent='👥 '+num(guests.length);
+  $('#hRating').textContent='⭐ '+S.rating+' %';
+  $('#hTime').textContent=`${WEATHER[S.weather].e} ${isHoliday(S.day)?'🏖️ ':''}${DOW[dowOf(S.day)].slice(0,3)}. J${S.day} · ${hhmm(S.time)}`;
+  const broken=S.b.some(b=>b.broken);
+  $('#nav').innerHTML=TABS.map(([k,l])=>`<button data-a="tab" data-v="${k}" class="${tab===k?'on':''}">${l}${k==='rides'&&broken?'<span class="dot"></span>':''}</button>`).join('');
+}
+function goalBar(){
+  const G=GOALS[S.goal];if(!G)return'<div class="goalbar">🏆 Parc légendaire — tous les objectifs sont atteints !</div>';
+  return`<div class="goalbar">🎯 <span>${G.t}</span>${barH(G.p()*100,'#2a9d8f')}<span class="sub">+${fmt(G.r)}</span></div>`;
+}
+function render(){
+  header();
+  let h='';
+  switch(tab){
+    case'home':h=homeHTML();break;case'rides':h=ridesHTML();break;case'shops':h=shopsHTML();break;
+    case'park':h=parkHTML();break;case'fin':h=finHTML();break;case'goals':h=goalsHTML();break;
+  }
+  $('#content').innerHTML=h;
+}
+function tips(){
+  const T=[],add=(p,e,t,tb)=>T.push({p,e,t,tab:tb});const R=rides(),A=f=>avg(f);
+  if(!R.length)add(10,'🎢','Construis ta première attraction pour ouvrir le parc.','rides');
+  if(R.length&&!hasKind('food'))add(9,'🍔','Aucun stand de nourriture : tes visiteurs vont avoir faim.','shops');
+  if(R.length&&!hasKind('drink'))add(9,'🥤','Aucun stand de boissons : tes visiteurs vont avoir soif.','shops');
+  if(R.length&&!hasKind('toilet'))add(9,'🚻','Pas de toilettes : les visiteurs repartiront vite et mécontents.','shops');
+  if(S.money<0)add(9,'🏦','Trésorerie négative : réduis les charges, monte un peu tes prix ou emprunte.','fin');
+  if(S.b.some(b=>b.broken)&&!S.mechanics)add(8,'🔧','Une attraction est en panne et personne ne peut la réparer : engage un mécanicien.','park');
+  if(S.entry>fairEntry()*1.3)add(7,'🎟️',`Ton entrée est trop chère : vise environ ${fairEntry()} €.`,'park');
+  if(guests.length>20&&S.rb.clean<60)add(7,'🧹','Le parc est sale : engage des agents d’entretien.','park');
+  if(guests.length>S.bins*35+20)add(6,'🗑️',`Pas assez de poubelles pour ${num(guests.length)} visiteurs.`,'park');
+  if(guests.length>30&&hasKind('food')&&A(g=>g.hunger)>55)add(5,'🍕','Les visiteurs ont faim malgré tes stands : ouvre-en un de plus ou agrandis-le.','shops');
+  if(guests.length>30&&hasKind('toilet')&&A(g=>g.bladder)>60)add(5,'🚻','Les toilettes sont saturées : construis-en d’autres.','shops');
+  const q=R.find(b=>b.queue.length>cap(b)*2);if(q)add(5,'⏳',`Énorme file à ${C(q).name} : monte son prix ou ajoute une attraction.`,'rides');
+  if(S.forecast==='rain'&&!hasKind('umbrella')&&S.totalGuests>=150)add(5,'☂️','Pluie annoncée demain : un stand de parapluies serait très rentable.','shops');
+  if(S.forecast==='heat')add(4,'🥵','Canicule demain : prévois assez de boissons et de glaces.','shops');
+  if(usedPlots()>=S.plots-1&&R.length)add(4,'📐','Ton terrain est presque plein : pense à l’agrandir.','rides');
+  if(R.length>=2&&S.rb.beauty<30)add(4,'🌷','Le parc manque de charme : ajoute du décor (les seniors y sont très sensibles).','park');
+  const sw=segWeights(),tw=sw.teen/(sw.family+sw.teen+sw.senior);
+  if(R.length>=3&&tw<.15)add(3,'🧑‍🎤','Peu d’ados viennent : ils veulent des sensations fortes (⚡ 5 et plus).','rides');
+  const ch=R.find(b=>b.price<fairRide(b)*.7);if(ch)add(3,'💶',`${C(ch).name} est bradée : tu peux monter son prix vers ${fairRide(ch)} €.`,'rides');
+  if(R.length&&S.entry<fairEntry()*.7)add(3,'🎟️',`Ton entrée est bon marché : tu pourrais monter vers ${fairEntry()} €.`,'park');
+  const hol=isHoliday(S.day+1)&&!isHoliday(S.day);
+  if(hol||dowOf(S.day+1)===5)add(2,'📅',hol?'Les vacances scolaires commencent demain : attends-toi à beaucoup de familles !':'Le week-end arrive demain : grosse affluence attendue, vérifie tes capacités.','home');
+  const old=R.find(b=>(b.age||0)>=25);if(old)add(4,'🧓',`${C(old).name} est usée (fiabilité max ${Math.round(maxRel(old))} %) : une rénovation s’impose.`,'rides');
+  if(S.rival&&S.rival.rating>S.rating+5)add(5,'🏰',`${S.rival.name} est mieux noté que toi : il te vole des visiteurs.`,'home');
+  if(!T.length)add(0,'👍','Tout roule ! Continue à développer ton parc.','home');
+  return T.sort((a,b)=>b.p-a.p).slice(0,4);
+}
+function avg(f){if(!guests.length)return 0;let s=0;for(const g of guests)s+=f(g);return s/guests.length;}
+function homeHTML(){
+  const W=WEATHER[S.weather],F=WEATHER[S.forecast];
+  let h=goalBar();
+  if(!rides().length)h+=`<div class="cta"><span style="font-size:30px">🎢</span><span>Ton parc est vide : construis une première attraction pour attirer des visiteurs.</span><button class="btn" data-a="catalog" data-v="ride">Construire</button></div>`;
+  h+=`<div class="kpis">
+    <div class="kpi"><div class="k">Recettes du jour</div><div class="v">${fmt(dayIncome())}</div><div class="s">Entrées ${fmt(S.today.entry)}</div></div>
+    <div class="kpi"><div class="k">Visiteurs aujourd’hui</div><div class="v">${num(S.today.guests)}</div><div class="s">${num(guests.length)} dans le parc</div></div>
+    <div class="kpi"><div class="k">Note du parc</div><div class="v">${S.rating} %</div><div class="s">Satisfaction ${Math.round(S.rb.hap)} %</div></div>
+    <div class="kpi"><div class="k">Propreté</div><div class="v">${Math.round(S.rb.clean)} %</div><div class="s">Beauté ${Math.round(S.rb.beauty)} %</div></div>
+    <div class="kpi"><div class="k">Calendrier</div><div class="v">${DOW[dowOf(S.day)]}</div><div class="s">${isHoliday(S.day)?'🏖️ Vacances scolaires':dowOf(S.day)>=5?'Week-end : forte affluence':'Jour de semaine'}</div></div>
+    <div class="kpi"><div class="k">Météo</div><div class="v">${W.e} ${W.n}</div><div class="s">Demain : ${F.e} ${F.n}</div></div>
+  </div>`;
+  h+=`<div class="panel"><h3>💡 Conseiller</h3>${tips().map(t=>`<div class="row"><div class="l" style="font-weight:600"><span style="font-size:20px;margin-right:6px">${t.e}</span>${t.t}</div>${t.tab!==tab?`<button class="btn sm sec" data-a="tab" data-v="${t.tab}">Voir →</button>`:''}</div>`).join('')}</div>`;
+  {const rv=S.rival,cf=compF(),eff=[];
+   if(S.buzz>0)eff.push(`🤳 Buzz influenceur (${S.buzz} j)`);if(S.concert)eff.push('🎸 Concert');if(S.privateAt)eff.push('🏢 Soirée privée à 19h');
+   if(S.sponsorDays>0)eff.push(`🪧 Panneaux sponsor (${S.sponsorDays} j)`);if(S.influencer)eff.push(`🤳 ${S.influencer} visite le parc`);if(S.rivalPromo)eff.push(`🏷️ Promo chez ${rv.name}`);
+   if(S.press)eff.push('📰 Article de presse');for(const c of S.campaigns)eff.push(`${CAMPAIGNS[c.k].e} ${CAMPAIGNS[c.k].name} (${c.days} j)`);
+   h+=`<div class="two"><div class="panel"><h3>🏰 Concurrence</h3>
+     <div class="need"><div class="h"><span>🎡 Ton parc</span><span>${S.rating} %</span></div>${barH(S.rating,'#2a9d8f')}</div>
+     <div class="need"><div class="h"><span>🏰 ${rv.name}</span><span>${Math.round(rv.rating)} %</span></div>${barH(rv.rating,'#ef476f')}</div>
+     <p class="sub">${cf>=1?`Ta meilleure réputation t’apporte <b class="pos">+${Math.round((cf-1)*100)} %</b> de visiteurs.`:`${rv.name} te prend <b class="negt">${Math.round((1-cf)*100)} %</b> de visiteurs : améliore ta note !`}</p></div>
+     <div class="panel"><h3>⚡ En cours aujourd’hui</h3>${eff.length?eff.map(e=>`<div class="th">${e}</div>`).join(''):'<p class="sub">Rien de particulier aujourd’hui.</p>'}</div></div>`;}
+  // affluence
+  const pts=S.series,max=Math.max(20,...pts);
+  let svg=`<svg viewBox="0 0 480 120" width="100%" height="120" preserveAspectRatio="none"><rect x="0" y="0" width="480" height="120" fill="#fbf7ee" rx="8"/>`;
+  for(let hh=10;hh<=20;hh+=2){const x=(hh*60-OPEN)/(CLOSE-OPEN)*480;svg+=`<line x1="${x}" y1="0" x2="${x}" y2="120" stroke="#efe6d2"/><text x="${x+3}" y="114" font-size="10" fill="#a08d5e">${hh}h</text>`;}
+  if(pts.length>1){const p=pts.map((v,i)=>`${((i+1)*15)/(CLOSE-OPEN)*480},${110-v/max*95}`).join(' ');
+    svg+=`<polygon points="0,110 ${p} ${(pts.length*15)/(CLOSE-OPEN)*480},110" fill="rgba(42,157,143,.18)"/><polyline points="${p}" fill="none" stroke="#2a9d8f" stroke-width="2.5"/>`;}
+  svg+=`<text x="6" y="14" font-size="11" fill="#7a6a45" font-weight="700">max ${num(max)}</text></svg>`;
+  const needs=[['😊 Bonheur',avg(g=>g.happy)],['🎢 Envie de s’amuser',avg(g=>100-g.fun),1],['🍔 Faim',avg(g=>g.hunger),1],['🥤 Soif',avg(g=>g.thirst),1],['🚻 Envie pressante',avg(g=>g.bladder),1]];
+  h+=`<div class="two"><div class="panel"><h3>Affluence aujourd’hui</h3>${svg}</div>
+  <div class="panel"><h3>État des visiteurs</h3>${guests.length?needs.map(([l,v,inv])=>`<div class="need"><div class="h"><span>${l}</span><span>${Math.round(v)} %</span></div>${barH(v,inv?(v>70?'#ef476f':v>45?'#ffb703':'#2a9d8f'):undefined)}</div>`).join(''):'<p class="sub">Aucun visiteur pour le moment.</p>'}</div></div>`;
+  const sw=segWeights(),tw=sw.family+sw.teen+sw.senior;
+  h+=`<div class="two"><div class="panel"><h3>Clientèle</h3>${Object.keys(SEGS).map(k=>{const gs=guests.filter(g=>g.seg===k),hp=gs.length?gs.reduce((a,g)=>a+g.happy,0)/gs.length:0;
+    return`<div class="need"><div class="h"><span>${SEGS[k].e} ${SEGS[k].n} <span class="sub">· ${gs.length} présents${gs.length?` · ${Math.round(hp)} % satisfaits`:''}</span></span><span>${Math.round(sw[k]/tw*100)} %</span></div>${barH(sw[k]/tw*100,'#118ab2')}</div>`;}).join('')}
+    <p class="sub">Familles : attractions douces. Ados : sensations fortes. Seniors : beauté du parc et souvenirs.</p></div>
+  <div class="panel"><h3>Avis récents</h3>${S.reviews.length?S.reviews.slice(0,4).map(r=>`<div class="th" style="align-items:flex-start"><span style="font-size:20px">${SEGS[r.seg].e}</span><div><b>${r.name}, ${r.age} ans</b> <span style="color:#d4a017">${'★'.repeat(r.st)}${'☆'.repeat(5-r.st)}</span><div class="sub">« ${r.txt} »</div></div></div>`).join(''):'<p class="sub">Les premiers avis arriveront quand des visiteurs quitteront le parc.</p>'}</div></div>`;
+  const th=Object.entries(S.thoughts).filter(([k,v])=>v>=.5).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  h+=`<div class="two"><div class="panel"><h3>Ce que pensent les visiteurs</h3>${th.length?th.map(([k,v])=>`<div class="th"><span style="font-size:20px">${THOUGHTS[k].e}</span><span style="${THOUGHTS[k].good?'color:#2a9d8f;font-weight:700':''}">« ${THOUGHTS[k].t} »</span><span class="c">${Math.round(v)}</span></div>`).join(''):'<p class="sub">Pas encore d’avis.</p>'}</div>
+  <div class="panel"><h3>Journal du parc</h3><div class="news">${S.news.slice(0,8).map(n=>`<div><span class="t">J${n.d} ${n.t}</span><span>${n.txt}</span></div>`).join('')}</div></div></div>`;
+  const top=rides().slice().sort((a,b)=>(b.todayVis||0)-(a.todayVis||0)).slice(0,6);
+  if(top.length)h+=`<div class="panel"><h3>Attractions du jour</h3><table><tr><th>Attraction</th><th>Visiteurs</th><th>File</th><th>Recettes</th></tr>${top.map(b=>`<tr><td>${C(b).e} ${C(b).name}</td><td>${num(b.todayVis||0)}</td><td>${b.queue.length}</td><td>${fmt(b.todayRev||0)}</td></tr>`).join('')}</table></div>`;
+  return h;
+}
+function landBar(kind){
+  return`<div class="toolbar"><div class="info">📐 Terrain : ${usedPlots()} / ${S.plots} emplacements utilisés</div>
+    <button class="btn sec" data-a="land">Agrandir +4 (${fmt(landCost())})</button>
+    <button class="btn teal" data-a="catalog" data-v="${kind}">＋ Construire</button></div>`;
+}
+function status(b){
+  if(b.closed)return`<span class="st wait">🎬 Tournage</span>`;
+  if(b.broken)return`<span class="st ko">🔧 En panne</span>`;
+  const it=C(b);
+  if(it.t==='ride')return b.running?`<span class="st ok">En marche</span>`:`<span class="st wait">${b.queue.length?'Embarquement':'En attente'}</span>`;
+  if(it.kind==='umbrella'&&S.weather!=='rain')return`<span class="st wait">Fermé (pas de pluie)</span>`;
+  return`<span class="st ok">Ouvert</span>`;
+}
+function ridesHTML(){
+  let h=goalBar()+landBar('ride');
+  const list=rides();
+  if(!list.length)return h+`<div class="empty">Aucune attraction pour l’instant.<br><button class="btn teal" data-a="catalog" data-v="ride">＋ Construire une attraction</button></div>`;
+  h+='<div class="cards">';
+  for(const b of list){const it=C(b),f=fairRide(b);
+    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${it.name}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
+      <div class="mini"><span>File d’attente</span><b>${b.queue.length} / ${cap(b)*3}</b></div>${barH(b.queue.length/(cap(b)*3)*100,'#118ab2')}
+      <div class="mini"><span>Fiabilité</span><b>${Math.round(b.rel)} %</b></div>${barH(b.rel)}
+      <div class="mini"><span>Frissons ⚡ ${exc(b).toFixed(1)} · ${cap(b)} places · ${it.dur} min</span></div>
+      <div class="mini"><span>Aujourd’hui</span><b>${num(b.todayVis||0)} visiteurs · ${fmt(b.todayRev||0)}</b></div>
+      <div class="mini"><span>Entretien</span><b>${fmt(upkeep(b))} / jour</b></div>
+      <div class="mini"><span>Bénéfice d’hier</span><b class="${b.yRev==null?'':b.yRev>=0?'pos':'negt'}">${b.yRev==null?'—':fmt(b.yRev)}</b></div>
+      <div class="mini"><span>Âge</span><b>${b.age||0} jour(s) · fiabilité max ${Math.round(maxRel(b))} %</b></div>
+      <div class="row"><div class="l">Prix du tour<small>Prix juste ≈ ${f} € · refus au-delà de ${Math.round(f*1.7)} €</small></div>${stp('price',b.id,b.price+' €')}</div>
+      <div class="acts">${b.lvl<3?`<button class="btn sm" data-a="up" data-v="${b.id}">⬆️ Améliorer (${fmt(upCost(b))})</button>`:''}
+      ${b.broken?`<button class="btn sm teal" data-a="repair" data-v="${b.id}">🔧 Réparer (${fmt(it.cost*.08)})</button>`:''}
+      ${(b.age||0)>=10?`<button class="btn sm teal" data-a="renov" data-v="${b.id}">✨ Rénover (${fmt(it.cost*.3)})</button>`:''}
+      <button class="btn sm ${confirmKey==='sell'+b.id?'red':'sec'}" data-a="sell" data-v="${b.id}">${confirmKey==='sell'+b.id?'Confirmer ?':'💥 Démolir'}</button></div></div>`;}
+  return h+'</div>';
+}
+function shopsHTML(){
+  let h=goalBar()+landBar('shop');
+  const list=shops();
+  if(!list.length)return h+`<div class="empty">Aucune boutique. Les visiteurs auront vite faim et soif !<br><button class="btn teal" data-a="catalog" data-v="shop">＋ Construire une boutique</button></div>`;
+  h+='<div class="cards">';
+  for(const b of list){const it=C(b);
+    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${it.name}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
+      <div class="mini"><span>File d’attente</span><b>${b.queue.length}</b></div>${barH(b.queue.length/(rate(b)*10)*100,'#118ab2')}
+      <div class="mini"><span>Service</span><b>${rate(b).toFixed(1)} clients / min</b></div>
+      <div class="mini"><span>Aujourd’hui</span><b>${num(b.todayVis||0)} clients · ${fmt(b.todayRev||0)}</b></div>
+      <div class="mini"><span>Entretien</span><b>${fmt(upkeep(b))} / jour</b></div>
+      <div class="row"><div class="l">Prix de vente<small>Prix juste ≈ ${it.value} € · refus au-delà de ${Math.round(it.value*1.8)} €</small></div>${stp('price',b.id,b.price+' €')}</div>
+      <div class="acts">${b.lvl<3?`<button class="btn sm" data-a="up" data-v="${b.id}">⬆️ Agrandir (${fmt(upCost(b))})</button>`:''}
+      <button class="btn sm ${confirmKey==='sell'+b.id?'red':'sec'}" data-a="sell" data-v="${b.id}">${confirmKey==='sell'+b.id?'Confirmer ?':'💥 Démolir'}</button></div></div>`;}
+  return h+'</div>';
+}
+function parkHTML(){
+  const fair=fairEntry(),rb=S.rb;
+  let h=goalBar()+`<div class="two"><div class="panel"><h3>Accueil</h3>
+    <div class="row"><div class="l">🎟️ Prix d’entrée<small>Prix juste estimé : ${fair} € (augmente avec tes attractions)</small></div>${stp2('entry',S.entry+' €')}</div>
+    <div class="row"><div class="l">🗑️ Poubelles<small>60 € pièce · une poubelle pour ~35 visiteurs</small></div>${stp2('bins',S.bins)}</div></div>
+  <div class="panel"><h3>Note du parc : ${S.rating} %</h3>
+    ${[['hap','😊 Bonheur des visiteurs','45 %'],['variety','🎢 Variété de l’offre','20 %'],['beauty','🌳 Beauté du parc','20 %'],['clean','🧹 Propreté','15 %']].map(([k,l,w])=>`<div class="need"><div class="h"><span>${l} <span class="sub">(${w})</span></span><span>${Math.round(rb[k])} %</span></div>${barH(rb[k])}</div>`).join('')}</div></div>`;
+  h+=`<div class="panel"><h3>Personnel</h3>
+    <div class="row"><div class="l">🧹 Agents d’entretien<small>Gardent le parc propre · 70 € / jour chacun</small></div>${stp2('staff',S.janitors,'data-k="janitors"')}</div>
+    <div class="row"><div class="l">🔧 Mécaniciens<small>Réparent les pannes et entretiennent les attractions · 100 € / jour · ${S.b.filter(b=>b.broken).length} en panne</small></div>${stp2('staff',S.mechanics,'data-k="mechanics"')}</div>
+    <div class="row"><div class="l">🤹 Animateurs<small>Mettent de l’ambiance et rendent les visiteurs heureux · 80 € / jour</small></div>${stp2('staff',S.animators,'data-k="animators"')}</div>
+    <p class="sub">Masse salariale : <b>${fmt(S.janitors*70+S.mechanics*100+S.animators*80)} / jour</b></p></div>`;
+  h+=`<div class="panel"><h3>Embellissement · beauté ${Math.round(rb.beauty)} %</h3><p class="sub">Plus le parc est grand, plus il faut de décor pour garder une bonne note de beauté. Le décor n’utilise pas d’emplacement.</p>`;
+  for(const k in DECOR){const d=DECOR[k],lock=S.totalGuests<(d.unlock||0);
+    h+=`<div class="row" style="${lock?'opacity:.5':''}"><div class="l">${d.e} ${d.name} <span class="sub">× ${S.decor[k]||0}</span><small>+${d.pts} pts de beauté · entretien ${d.upkeep} € / jour${lock?` · 🔒 ${d.unlock} visiteurs`:''}</small></div><button class="btn sm" data-a="decor" data-v="${k}">Acheter ${fmt(d.cost)}</button></div>`;}
+  h+='</div>';
+  h+=`<div class="panel"><h3>Partie</h3><p class="sub">Difficulté : <b>${D().e} ${D().n}</b> · faillite sous ${fmt(D().bank)} · sauvegarde automatique chaque soir sur cet appareil.</p><button class="btn ${confirmKey==='new'?'red':'sec'}" data-a="new">${confirmKey==='new'?'Oui, tout effacer et recommencer':'🔄 Nouvelle partie'}</button></div>`;
+  return h;
+}
+function finHTML(){
+  const T=S.today;let up=fixedCosts();for(const b of S.b)up+=upkeep(b);for(const k in S.decor)up+=DECOR[k].upkeep*S.decor[k];
+  const wages=S.janitors*70+S.mechanics*100+S.animators*80;
+  let h=goalBar()+`<div class="kpis">
+   <div class="kpi"><div class="k">🎟️ Entrées</div><div class="v">${fmt(T.entry)}</div></div>
+   <div class="kpi"><div class="k">🎢 Attractions</div><div class="v">${fmt(T.rides)}</div></div>
+   <div class="kpi"><div class="k">🍔 Boutiques</div><div class="v">${fmt(T.shops)}</div></div>
+   <div class="kpi"><div class="k">🏗️ Investissements</div><div class="v">${fmt(T.build)}</div></div>
+   <div class="kpi"><div class="k">🌙 Charges de ce soir</div><div class="v">${fmt(up+wages+Math.round(S.loan*.005))}</div><div class="s">Entretien ${fmt(up)} · salaires ${fmt(wages)}</div></div></div>`;
+  const hist=S.history.slice(-10);
+  if(hist.length){const mx=Math.max(1,...hist.map(d=>Math.max(d.inc,d.exp)));const bw=480/hist.length;
+    let svg=`<svg viewBox="0 0 480 150" width="100%" height="150">`;
+    hist.forEach((d,i)=>{const x=i*bw,hi=d.inc/mx*120,he=d.exp/mx*120;
+      svg+=`<rect x="${x+bw*.12}" y="${130-hi}" width="${bw*.36}" height="${hi}" rx="3" fill="#2a9d8f"/><rect x="${x+bw*.52}" y="${130-he}" width="${bw*.36}" height="${he}" rx="3" fill="#ef476f"/><text x="${x+bw/2}" y="145" font-size="11" text-anchor="middle" fill="#7a6a45">J${d.day}</text>`;});
+    svg+='</svg>';
+    h+=`<div class="panel"><h3>Recettes <span style="color:#2a9d8f">■</span> et charges <span style="color:#ef476f">■</span> par jour</h3>${svg}
+    <table><tr><th>Jour</th><th>Visiteurs</th><th>Note</th><th>Recettes</th><th>Charges</th><th>Résultat</th></tr>${S.history.slice().reverse().map(d=>`<tr><td>${d.day}</td><td>${num(d.guests)}</td><td>${d.rating} %</td><td>${fmt(d.inc)}</td><td>${fmt(d.exp)}</td><td class="${d.inc-d.exp>=0?'pos':'negt'}">${fmt(d.inc-d.exp)}</td></tr>`).join('')}</table></div>`;}
+  h+=`<div class="two"><div class="panel"><h3>Marketing ${marketingBoost()?`· +${Math.round(marketingBoost()*100)} % de visiteurs`:''}</h3>`;
+  for(const k in CAMPAIGNS){const c=CAMPAIGNS[k],act=S.campaigns.find(x=>x.k===k),lock=S.totalGuests<(c.unlock||0);
+    h+=`<div class="row" style="${lock?'opacity:.5':''}"><div class="l">${c.e} ${c.name}<small>+${Math.round(c.boost*100)} % de visiteurs pendant ${c.days} jours${lock?` · 🔒 ${c.unlock} visiteurs`:''}</small></div>${act?`<span class="st ok">Encore ${act.days} j</span>`:`<button class="btn sm teal" data-a="camp" data-v="${k}">${fmt(c.cost)}</button>`}</div>`;}
+  h+=`</div><div class="panel"><h3>Banque</h3>
+    <div class="row"><div class="l">🏦 Prêt en cours<small>Intérêts : 0,5 % par jour (${fmt(S.loan*.005)} / jour)</small></div><b>${fmt(S.loan)}</b></div>
+    <div class="acts" style="margin-top:8px"><button class="btn sm" data-a="borrow" ${S.loan>=50000?'disabled':''}>Emprunter 10 000 €</button><button class="btn sm sec" data-a="repay" ${S.loan<=0?'disabled':''}>Rembourser 10 000 €</button></div>
+    <p class="sub">Plafond d’emprunt : 50 000 €.</p></div></div>`;
+  return h;
+}
+function goalsHTML(){
+  let h='<div class="panel"><h3>Objectifs</h3>';
+  GOALS.forEach((G,i)=>{const done=i<S.goal,cur=i===S.goal,p=clamp(G.p(),0,1);
+    h+=`<div class="goal" style="${i>S.goal?'opacity:.5':''}"><div class="ic">${done?'✅':cur?'🎯':'🔒'}</div><div style="flex:1"><div style="font-weight:700">${G.t}</div>${cur?`<div style="margin-top:6px">${barH(p*100,'#2a9d8f')}</div>`:''}</div><div class="sub" style="font-weight:800">+${fmt(G.r)}</div></div>`;});
+  h+='</div><div class="panel"><h3>Prochains déblocages</h3>';
+  const next=[...Object.values(CATALOG),...Object.entries(DECOR).map(([k,d])=>({...d,unlock:d.unlock||0})),...Object.values(CAMPAIGNS).map(c=>({...c,unlock:c.unlock||0}))].filter(x=>x.unlock>S.totalGuests).sort((a,b)=>a.unlock-b.unlock).slice(0,5);
+  h+=next.length?next.map(x=>`<div class="row"><div class="l">${x.e} ${x.name}</div><span class="sub">à ${num(x.unlock)} visiteurs (${num(S.totalGuests)} actuellement)</span></div>`).join(''):'<p class="sub">Tout est débloqué !</p>';
+  return h+'</div>';
+}
+function catalogHTML(kind){
+  const list=Object.values(CATALOG).filter(it=>it.t===kind);
+  const free=S.plots-usedPlots();
+  return`<h2>${kind==='ride'?'🎢 Construire une attraction':'🍔 Construire une boutique'}</h2><div class="sub">Terrain libre : ${free} emplacement(s) · Budget : ${fmt(S.money)}</div><h3>Catalogue</h3><div class="cat">${list.map(it=>{
+    const lock=S.totalGuests<it.unlock,noRoom=it.plots>free,noMoney=S.money<it.cost;
+    const info=it.t==='ride'?`⚡ ${it.exc} · ${it.cap} places · ${it.plots} empl. · entretien ${it.upkeep} €/j`:`${it.plots} empl. · entretien ${it.upkeep} €/j`;
+    return`<div class="ci${lock?' locked':''}"><span class="e">${it.e}</span><b>${it.name}</b><span class="d">${it.d}</span><span class="d">${info}</span>
+      ${lock?`<button class="btn sm sec" disabled>🔒 ${num(it.unlock)} visiteurs</button>`:`<button class="btn sm ${noRoom||noMoney?'sec':''}" data-a="build" data-v="${it.id}" ${noRoom||noMoney?'disabled':''}>${noRoom?'Pas assez de terrain':fmt(it.cost)}</button>`}</div>`;}).join('')}</div>
+  <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;
+}
+function dayHTML(){
+  const T=S.today,inc=dayIncome(),exp=T.upkeep+T.wages+T.marketing+T.interest,res=inc-exp,F=WEATHER[S.forecast];
+  return`<h2>🌙 Fin du jour ${S.day}</h2><div class="sub">${num(T.guests)} visiteurs · note du parc ${S.rating} %</div>
+  <h3>Recettes</h3><table><tr><td>🎟️ Entrées</td><td>${fmt(T.entry)}</td></tr><tr><td>🎢 Attractions</td><td>${fmt(T.rides)}</td></tr><tr><td>🍔 Boutiques</td><td>${fmt(T.shops)}</td></tr><tr><td><b>Total</b></td><td class="pos">${fmt(inc)}</td></tr></table>
+  <h3>Charges</h3><table><tr><td>🛠️ Entretien et frais fixes</td><td>${fmt(T.upkeep)}</td></tr><tr><td>👷 Salaires</td><td>${fmt(T.wages)}</td></tr><tr><td>📣 Publicité</td><td>${fmt(T.marketing)}</td></tr><tr><td>🏦 Intérêts</td><td>${fmt(T.interest)}</td></tr><tr><td><b>Total</b></td><td class="negt">${fmt(exp)}</td></tr></table>
+  <div class="kpis" style="margin-top:14px"><div class="kpi"><div class="k">Résultat d’exploitation</div><div class="v ${res>=0?'pos':'negt'}">${fmt(res)}</div></div>
+  <div class="kpi"><div class="k">Investissements</div><div class="v">${fmt(T.build)}</div></div><div class="kpi"><div class="k">Demain : ${DOW[dowOf(S.day+1)]}${isHoliday(S.day+1)?' 🏖️':''}</div><div class="v">${F.e} ${F.n}</div></div></div>
+  <p class="sub">${S.money<0?'⚠️ Trésorerie négative : tu ne peux plus investir. Ajuste tes prix, réduis le personnel ou emprunte.':'Trésorerie : <b>'+fmt(S.money)+'</b>'}</p>
+  <div class="sheetacts"><button class="btn" data-a="next">☀️ Jour suivant</button></div>`;
+}
+function offerHTML(){const o=S.offer;if(!o)return'';const def=OFFERS.find(x=>x.id===o.id);
+  return`<h2>${def.e} ${def.t}</h2><div class="sub">Proposition du jour · ${DOW[dowOf(S.day)]} ${S.day}</div><p style="margin-top:12px">${def.d(o)}</p>
+  <div class="kpis" style="margin-top:12px"><div class="kpi"><div class="k">Ce que tu y gagnes</div><div class="v" style="font-size:19px">${def.gain(o)}</div></div><div class="kpi"><div class="k">Trésorerie</div><div class="v" style="font-size:19px">${fmt(S.money)}</div></div></div>
+  <div class="sheetacts"><button class="btn sec" data-a="offerNo">Refuser</button><button class="btn teal" data-a="offerYes">Accepter</button></div>`;}
+function bankruptHTML(){return`<h2>💀 Faillite !</h2><p>Ta trésorerie est tombée à <b>${fmt(S.money)}</b>. La banque reprend le parc après ${S.day} jours d’exploitation.</p>
+  <p class="sub">Visiteurs accueillis : ${num(S.totalGuests)} · objectifs atteints : ${S.goal}/${GOALS.length}</p><div class="sheetacts"><button class="btn red" data-a="newOk">Recommencer une partie</button></div>`;}
+function welcomeHTML(){
+  return`<h2>🎡 Bienvenue dans Parc Mania !</h2>
+  <p>Tu diriges un parc d’attractions sur un terrain de <b>12 emplacements</b>, face à un concurrent redoutable : <b>WonderLand</b>.</p>
+  <p>🎢 <b>Construis des attractions</b> pour attirer des visiteurs, puis règle leurs prix.<br>
+  🍔 Les visiteurs ont <b>faim, soif</b> et besoin de <b>toilettes</b> : ouvre des boutiques.<br>
+  🧹 Engage du <b>personnel</b> pour garder le parc propre et réparer les pannes.<br>
+  🌳 <b>Embellis</b> le parc : un parc beau et propre est mieux noté, et une bonne note attire du monde.<br>
+  ☀️ Surveille la <b>météo</b> : la pluie fait fuir les visiteurs… sauf si tu vends des parapluies.<br>
+  📊 Le <b>tableau de bord</b> te montre en direct ce que pensent tes visiteurs.</p>
+  <p class="sub">Les week-ends et les vacances scolaires attirent les foules, et ta clientèle (familles, ados, seniors) n’aime pas les mêmes choses. Le parc ouvre de 9h à 21h. Chaque soir, tu reçois un bilan financier. Suis les objectifs pour gagner des primes !</p>
+  <p class="sub">Tu recevras aussi des propositions (soirées privées, sponsors, influenceurs…) à accepter ou refuser, et tes attractions vieilliront.</p>
+  <h3>Choisis ta difficulté</h3><div class="cat">${Object.entries(DIFFS).map(([k,d])=>`<div class="ci"><span class="e">${d.e}</span><b>${d.n}</b><span class="d">${d.d}</span><button class="btn sm ${k==='normal'?'teal':''}" data-a="start" data-v="${k}">Jouer</button></div>`).join('')}</div>`;
+}
+function winHTML(){return`<h2>🏆 Parc légendaire !</h2><p>Bravo, tu as accompli tous les objectifs. Ton parc est l’un des meilleurs du pays !</p><p class="sub">Tu peux continuer à le développer autant que tu veux.</p><div class="sheetacts"><button class="btn" data-a="close">Continuer</button></div>`;}
+
+let sheetFn=null;
+function openSheet(fn){sheetFn=fn;$('#sheet').innerHTML=fn();$('#wrap').style.display='flex';modal=true;}
+function closeSheet(){$('#wrap').style.display='none';modal=false;sheetFn=null;last=0;}
+function toast(s){const d=document.createElement('div');d.className='toast';d.textContent=s;$('#toasts').appendChild(d);
+  const all=$('#toasts').children;if(all.length>3)all[0].remove();setTimeout(()=>d.remove(),3200);}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]');if(!el||el.disabled)return;
+  if(el.closest('#speed'))return;
+  act(el.dataset.a,el.dataset.v,el);
+});
+$('#wrap').addEventListener('click',e=>{if(e.target.id==='wrap'&&sheetFn!==dayHTML&&sheetFn!==welcomeHTML&&sheetFn!==bankruptHTML&&sheetFn!==offerHTML)closeSheet();});
+$('#speed').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;speed=+b.dataset.s;[...$('#speed').children].forEach(x=>x.classList.toggle('on',x===b));});
+document.addEventListener('pointerdown',()=>{holding=true;});
+const unhold=()=>setTimeout(()=>{holding=false;},400);
+document.addEventListener('pointerup',unhold);document.addEventListener('pointercancel',unhold);
+
+// ====================== BOUCLE ======================
+function loop(ts){
+  const dt=Math.min(100,ts-(last||ts));last=ts;
+  if(S&&!modal&&speed>0){acc+=dt*speed/MS_PER_MIN;let n=0;while(acc>=1&&n<10){tick();acc-=1;n++;if(modal)break;}}
+  requestAnimationFrame(loop);
+}
+setInterval(()=>{if(!S)return;header();if(!holding&&!modal)render();},900);
+
+// ====================== SAUVEGARDE ======================
+function save(){try{const o={...S,b:S.b.map(b=>({id:b.id,type:b.type,lvl:b.lvl,price:b.price,visitors:b.visitors,revenue:b.revenue,rel:b.rel,broken:b.broken,repairT:b.repairT,age:b.age||0,yRev:b.yRev??null}))};localStorage.setItem(SAVE_KEY,JSON.stringify(o));}catch(_){}}
+function load(){try{const s=localStorage.getItem(SAVE_KEY);if(!s)return false;const o=JSON.parse(s);if(!o||!Array.isArray(o.b))return false;
+  S=o;S.reviews=S.reviews||[];S.diff=S.diff||'normal';S.rival=S.rival||{name:'WonderLand',rating:58};S.offer=null;S.privateAt=null;S.time=OPEN;S.today=newDay();S.series=[];S.b.forEach(b=>{rtInit(b);b.todayVis=0;b.todayRev=0;});guests=[];return true;}catch(_){return false;}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&S)save();});
+
+if(!load())newGame();
+render();
+if(!S.seenWelcome)openSheet(welcomeHTML);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
