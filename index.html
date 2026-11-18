@@ -18,6 +18,10 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 .brand{font-weight:900;font-size:20px;margin-right:auto;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
 .brand small{display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.3px}
 .pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);border-radius:999px;padding:7px 12px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill .pl{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;line-height:1.1}
+.pill{line-height:1.15;border-radius:14px;padding:6px 12px}
+.ch .big:empty,.ci .e:empty,.goal .ic:empty{display:none}
+.goal .ic{color:var(--teal);font-weight:900}
 .pill.neg{background:rgba(255,93,122,.35)}
 .seg{display:flex;background:rgba(0,0,0,.35);border-radius:999px;padding:3px}
 .seg button{border:0;background:transparent;color:#cfd8dc;font-size:15px;padding:6px 11px;border-radius:999px;font-weight:800;min-width:40px}
@@ -118,13 +122,13 @@ input.txt:focus{border-color:var(--teal)}
 </head>
 <body>
 <div id="top">
-  <div class="brand" id="brand">🎡 Parc Mania</div>
+  <div class="brand" id="brand">Parc Mania</div>
   <div class="pill" id="hMoney"></div>
   <div class="pill" id="hGuests"></div>
   <div class="pill" id="hRating"></div>
   <div class="pill" id="hTime"></div>
-  <button class="pill" id="sndBtn" style="border:0;color:#fff;cursor:pointer">🎵</button>
-  <div class="seg" id="speed"><button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button></div>
+  <button class="pill" id="sndBtn" style="border:0;color:#fff;cursor:pointer;font-family:inherit"></button>
+  <div class="seg" id="speed"><button data-s="0">Pause</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button></div>
 </div>
 <div id="nav"></div>
 <div id="main"><div class="wrapc" id="content"></div></div>
@@ -353,6 +357,8 @@ const ISSUES_NEG={expensive:'les attractions sont trop chères',shopExp:'les pri
   thirsty:'rien à boire',toilet:'pas de toilettes',dirty:'le parc est sale',queue:'des files d’attente interminables',broken:'trop d’attractions en panne',
   nocash:'tout coûte trop cher',bored:'pas grand-chose à faire',wet:'trempés, et aucun parapluie à acheter',bad:'on s’est ennuyés',crowd:'beaucoup trop de monde, on ne pouvait rien faire',sick:'un manège bien trop violent, j’ai été malade'};
 
+const EMO=/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\uFE0F\u200D\u20E3]/gu;
+const noE=t=>String(t).replace(EMO,'').replace(/ {2,}/g,' ');
 // ====================== OUTILS ======================
 const $=s=>document.querySelector(s);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
@@ -726,13 +732,13 @@ function stp(a,v,val,extra){return`<div class="stp"><button data-a="${a}" data-v
 function stp2(a,val,extra){return`<div class="stp"><button data-a="${a}" data-v="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="1" ${extra||''}>+</button></div>`;}
 function barH(v,col){return`<div class="bar"><i style="width:${clamp(v,0,100)}%;background:${col||(v<40?'#ff5d7a':v<65?'#ffb703':'#2ec4b6')}"></i></div>`;}
 function header(){
-  $('#brand').innerHTML=`${THEMES[S.theme].e} ${S.name}<small>${LOC().e} ${LOC().n} · ${THEMES[S.theme].n}</small>`;
-  const m=$('#hMoney');m.textContent='💰 '+fmt(S.money);m.classList.toggle('neg',S.money<0);
-  $('#hGuests').textContent='👥 '+num(guests.length);
-  $('#hRating').textContent='⭐ '+S.rating+' %';
-  $('#hTime').textContent=`${WEATHER[S.weather].e} ${SEASONS[seasonOf(S.day)].e} ${DOW[dowOf(S.day)].slice(0,3)}. ${dayIn(S.day)}/${SEASON_LEN} · An ${yearOf(S.day)} · ${hhmm(S.time)}`;
+  $('#brand').innerHTML=noE(`${S.name}<small>${LOC().n} · ${THEMES[S.theme].n}</small>`);
+  const m=$('#hMoney');m.innerHTML=`<span class="pl">Caisse</span>${fmt(S.money)}`;m.classList.toggle('neg',S.money<0);
+  $('#hGuests').innerHTML=`<span class="pl">Visiteurs</span>${num(guests.length)}`;
+  $('#hRating').innerHTML=`<span class="pl">Note</span>${S.rating} %`;
+  $('#hTime').innerHTML=`<span class="pl">${SEASONS[seasonOf(S.day)].n} · ${WEATHER[S.weather].n}</span>${DOW[dowOf(S.day)].slice(0,3)}. ${dayIn(S.day)}/${SEASON_LEN} · An ${yearOf(S.day)} · ${hhmm(S.time)}`;
   const broken=S.b.some(b=>b.broken);
-  $('#nav').innerHTML=TABS.map(([k,l])=>`<button data-a="tab" data-v="${k}" class="${tab===k?'on':''}">${l}${k==='rides'&&broken?'<span class="dot"></span>':''}</button>`).join('');
+  $('#nav').innerHTML=noE(TABS.map(([k,l])=>`<button data-a="tab" data-v="${k}" class="${tab===k?'on':''}">${l}${k==='rides'&&broken?'<span class="dot"></span>':''}</button>`).join(''));
 }
 function goalBar(){
   const G=GOALS[S.goal];if(!G)return'<div class="goalbar">🏆 Parc légendaire — tous les objectifs sont atteints !</div>';
@@ -745,7 +751,7 @@ function render(){
     case'home':h=homeHTML();break;case'rides':h=ridesHTML();break;case'shops':h=shopsHTML();break;case'land':h=landHTML();break;case'staff':h=staffHTML();break;case'group':h=groupHTML();break;case'rd':h=rdHTML();break;
     case'park':h=parkHTML();break;case'fin':h=finHTML();break;case'goals':h=goalsHTML();break;
   }
-  $('#content').innerHTML=h;
+  $('#content').innerHTML=noE(h);
 }
 function tips(){
   const T=[],add=(p,e,t,tb)=>T.push({p,e,t,tab:tb});const R=rides(),A=f=>avg(f);
@@ -924,7 +930,7 @@ function finHTML(){
 function goalsHTML(){
   let h='<div class="panel"><h3>Objectifs</h3>';
   GOALS.forEach((G,i)=>{const done=i<S.goal,cur=i===S.goal,p=clamp(G.p(),0,1);
-    h+=`<div class="goal" style="${i>S.goal?'opacity:.5':''}"><div class="ic">${done?'✅':cur?'🎯':'🔒'}</div><div style="flex:1"><div style="font-weight:700">${G.t}</div>${cur?`<div style="margin-top:6px">${barH(p*100,'#2ec4b6')}</div>`:''}</div><div class="sub" style="font-weight:800">+${fmt(G.r)}</div></div>`;});
+    h+=`<div class="goal" style="${i>S.goal?'opacity:.5':''}"><div class="ic">${done?'✓':cur?'›':'·'}</div><div style="flex:1"><div style="font-weight:700">${G.t}</div>${cur?`<div style="margin-top:6px">${barH(p*100,'#2ec4b6')}</div>`:''}</div><div class="sub" style="font-weight:800">+${fmt(G.r)}</div></div>`;});
   h+='</div><div class="panel"><h3>Prochains déblocages</h3>';
   const next=[...Object.values(CATALOG),...Object.entries(DECOR).map(([k,d])=>({...d,unlock:d.unlock||0})),...Object.values(CAMPAIGNS).map(c=>({...c,unlock:c.unlock||0}))].filter(x=>x.unlock>S.totalGuests).sort((a,b)=>a.unlock-b.unlock).slice(0,5);
   h+=next.length?next.map(x=>`<div class="row"><div class="l">${x.e} ${x.name}</div><span class="sub">à ${num(x.unlock)} visiteurs (${num(S.totalGuests)} actuellement)</span></div>`).join(''):'<p class="sub">Tout est débloqué !</p>';
@@ -1078,9 +1084,9 @@ function oldWelcomeHTML(){
 function winHTML(){return`<h2>🏆 Parc légendaire !</h2><p>Bravo, tu as accompli tous les objectifs. Ton parc est l’un des meilleurs du pays !</p><p class="sub">Tu peux continuer à le développer autant que tu veux.</p><div class="sheetacts"><button class="btn" data-a="close">Continuer</button></div>`;}
 
 let sheetFn=null;
-function openSheet(fn){sheetFn=fn;$('#sheet').innerHTML=fn();$('#wrap').style.display='flex';modal=true;}
+function openSheet(fn){sheetFn=fn;$('#sheet').innerHTML=noE(fn());$('#wrap').style.display='flex';modal=true;}
 function closeSheet(){$('#wrap').style.display='none';modal=false;sheetFn=null;last=0;}
-function toast(s){const d=document.createElement('div');d.className='toast';d.textContent=s;$('#toasts').appendChild(d);
+function toast(s){const d=document.createElement('div');d.className='toast';d.textContent=noE(s).trim();$('#toasts').appendChild(d);
   const all=$('#toasts').children;if(all.length>3)all[0].remove();setTimeout(()=>d.remove(),3200);}
 
 document.addEventListener('click',e=>{
@@ -1130,7 +1136,7 @@ function playStep(m,i,t,sp){
 }
 setInterval(()=>{if(snd<2||!actx||document.hidden||!S)return;const m=MUS[S.theme]||MUS.classic,sp=60/m.bpm/2,now=actx.currentTime;
   if(mNext<now)mNext=now+.05;while(mNext<now+.35){playStep(m,mStep++,mNext,sp);mNext+=sp;}},120);
-function sndLabel(){$('#sndBtn').textContent=['🔇','🔊','🎵'][snd];$('#sndBtn').title=['Son coupé','Effets sonores','Musique + effets'][snd];}
+function sndLabel(){$('#sndBtn').innerHTML=`<span class="pl">Son</span>${['Coupé','Effets','Musique'][snd]}`;$('#sndBtn').title=['Son coupé','Effets sonores','Musique + effets'][snd];}
 
 // ====================== BOUCLE ======================
 function loop(ts){
