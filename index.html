@@ -20,6 +20,9 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 .pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);border-radius:999px;padding:7px 12px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill .pl{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;line-height:1.1}
 .pill{line-height:1.15;border-radius:14px;padding:6px 12px}
+.ico{width:42px;height:42px;fill:none;stroke:var(--teal);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ico .a{stroke:var(--gold)}
+.ci .e .ico{width:46px;height:46px}
 .ch .big:empty,.ci .e:empty,.goal .ic:empty{display:none}
 .goal .ic{color:var(--teal);font-weight:900}
 .pill.neg{background:rgba(255,93,122,.35)}
@@ -155,6 +158,7 @@ const CATALOG={
   flume:{t:'ride',name:'Rivière rapide',e:'🛶',cost:11000,plots:3,exc:6.5,cap:16,dur:7,price:5,upkeep:130,unlock:350,d:'Rafraîchissante, encore plus prisée par grosse chaleur.'},
   drop:{t:'ride',name:'Tour de chute',e:'🗼',cost:14000,plots:2,exc:8,cap:12,dur:4,price:6,upkeep:170,unlock:550,d:'Sensations fortes sur peu de terrain.'},
   coaster:{t:'ride',name:'Montagnes russes',e:'🎢',cost:22000,plots:4,exc:10,cap:24,dur:5,price:8,upkeep:250,unlock:800,d:'L’attraction phare qui fait venir les foules.'},
+  skate:{t:'ride',name:'Patinoire',e:'⛸️',cost:6000,plots:2,exc:3,cap:30,dur:15,price:0,upkeep:60,winter:1,d:'Ouverte uniquement pendant la saison d’hiver. Les familles adorent.'},
   rocket:{t:'ride',name:'Space Rocket',e:'🚀',cost:32000,plots:4,exc:12,cap:20,dur:5,price:10,upkeep:330,unlock:1500,d:'Le summum des sensations. Prestige maximal.'},
   burger:{t:'shop',kind:'food',name:'Burgers',e:'🍔',cost:800,plots:1,price:5,value:7,upkeep:30,rate:2,d:'Calme la faim des visiteurs.'},
   drinks:{t:'shop',kind:'drink',name:'Boissons',e:'🥤',cost:600,plots:1,price:3,value:4,upkeep:20,rate:3,d:'Indispensable par beau temps.'},
@@ -163,6 +167,7 @@ const CATALOG={
   balloons:{t:'shop',kind:'souvenir',name:'Ballons',e:'🎈',cost:500,plots:1,price:3,value:5,upkeep:15,rate:3,unlock:80,d:'Petit plaisir qui rend les visiteurs heureux.'},
   umbrella:{t:'shop',kind:'umbrella',name:'Parapluies',e:'☂️',cost:700,plots:1,price:6,value:9,upkeep:15,rate:3,unlock:150,d:'Ne se vend que les jours de pluie… mais alors, beaucoup !'},
   gifts:{t:'shop',kind:'souvenir',name:'Boutique souvenirs',e:'🎁',cost:1200,plots:1,price:8,value:12,upkeep:30,rate:2,unlock:250,d:'Gros panier moyen chez les visiteurs ravis.'},
+  xmas:{t:'shop',kind:'xmas',name:'Marché de Noël',e:'🎄',cost:3000,plots:2,price:8,value:10,upkeep:40,rate:3,winter:1,d:'Vin chaud et gaufres : ouvert uniquement en hiver.'},
   restaurant:{t:'shop',kind:'restaurant',name:'Restaurant',e:'🍽️',cost:6000,plots:2,price:18,value:20,upkeep:80,rate:1.5,unlock:300,d:'Repas assis : cher, mais les familles et surtout les seniors adorent.'},
   toilet:{t:'shop',kind:'toilet',name:'Toilettes',e:'🚻',cost:700,plots:1,price:0,value:2,upkeep:20,rate:4,d:'Sans toilettes, les visiteurs partent vite.'},
 };
@@ -173,6 +178,7 @@ const DECOR={
   benches:{name:'Bancs à l’ombre',e:'🪑',cost:300,pts:2,upkeep:2},
   statue:{name:'Statue',e:'🗿',cost:1000,pts:8,upkeep:5},
   fountain:{name:'Fontaine',e:'⛲',cost:1800,pts:14,upkeep:10},
+  lights:{name:'Illuminations de Noël',e:'✨',cost:2500,pts:18,upkeep:15},
   garden:{name:'Jardin à thème',e:'🏯',cost:4500,pts:32,upkeep:20,unlock:300},
 };
 const CAMPAIGNS={
@@ -185,6 +191,7 @@ const WEATHER={
   cloud:{e:'⛅',n:'Nuageux',arr:1,thirst:1},
   rain:{e:'🌧️',n:'Pluie',arr:.55,thirst:.8},
   heat:{e:'🥵',n:'Canicule',arr:1.05,thirst:1.9},
+  snow:{e:'❄️',n:'Neige',arr:.55,thirst:.6},
 };
 const THOUGHTS={
   great:{e:'😍',t:'Ce parc est génial !',good:1},
@@ -355,6 +362,76 @@ const CRISES={
     o:[{t:'Communiquer sur l’histoire',d:'Belle publicité gratuite.',f:()=>{rep(4,5);news('La presse salue la réactivité de ton équipe !');}},
        {t:'Rester discret et féliciter l’équipe',d:'Le moral du personnel grimpe.',f:()=>{for(const m of S.staff)m.morale=Math.min(100,m.morale+12);news('Ton équipe est fière d’avoir été félicitée.');}}]},
 };
+const ICO={
+  teacups:'<path d="M10 20h22v6a11 11 0 0 1-22 0z"/><path d="M32 22h3a4 4 0 0 1 0 8h-4"/><path d="M7 39h28"/><path class="a" d="M17 8c0 3 3 3 3 6M24 8c0 3 3 3 3 6"/>',
+  carousel:'<path d="M8 18L24 7l16 11z"/><path d="M13 18v20M24 18v20M35 18v20M7 38h34"/><circle class="a" cx="24" cy="27" r="3"/>',
+  bumper:'<path d="M7 30h34v6H7z"/><path d="M13 30l4-8h14l4 8"/><circle cx="15" cy="38" r="3"/><circle cx="33" cy="38" r="3"/><path class="a" d="M24 22V10"/>',
+  ferris:'<circle cx="24" cy="20" r="13"/><path d="M24 7v26M11 20h26M15 11l18 18M33 11L15 29"/><path d="M24 20L14 43M24 20l10 23"/><circle class="a" cx="24" cy="20" r="2.5"/>',
+  haunted:'<path d="M9 42V22L24 9l15 13v20z"/><path d="M20 42v-9h8v9"/><path class="a" d="M15 25h5v5h-5zM28 25h5v5h-5z"/>',
+  flume:'<path d="M5 34c4-4 8-4 12 0s8 4 12 0 8-4 12 0"/><rect x="13" y="20" width="22" height="7" rx="3.5"/><path class="a" d="M5 41c4-4 8-4 12 0s8 4 12 0 8-4 12 0"/>',
+  drop:'<path d="M24 5v37M17 42h14"/><rect class="a" x="15" y="18" width="18" height="7" rx="2"/><path d="M20 5h8"/>',
+  coaster:'<path d="M4 38C9 8 18 8 22 26s12 16 22-18"/><path d="M12 30v12M22 26v16M32 32v10"/><circle class="a" cx="40" cy="14" r="2.5"/>',
+  rocket:'<path d="M24 5c7 7 9 16 6 26H18c-3-10-1-19 6-26z"/><circle class="a" cx="24" cy="18" r="3.5"/><path d="M18 31l-5 7h6M30 31l5 7h-6M21 36l3 7 3-7"/>',
+  skate:'<path d="M12 8h12l2 16 10 4v6H12z"/><path d="M8 40h32"/><path class="a" d="M16 34v6M30 34v6"/>',
+  burger:'<path d="M9 22a15 11 0 0 1 30 0z"/><path class="a" d="M8 27h32"/><path d="M9 32h30"/><path d="M10 36h28a4 4 0 0 1-4 5H14a4 4 0 0 1-4-5z"/>',
+  drinks:'<path d="M14 14h20l-3 28H17z"/><path d="M26 14l4-9"/><path class="a" d="M15 22h18"/>',
+  pizza:'<path d="M24 43L8 12c10-5 22-5 32 0z"/><circle class="a" cx="20" cy="18" r="2.5"/><circle class="a" cx="28" cy="20" r="2.5"/><circle class="a" cx="24" cy="28" r="2.5"/>',
+  icecream:'<path d="M16 22l8 21 8-21"/><circle cx="24" cy="16" r="8"/><path class="a" d="M20 13h0.1M27 17h0.1"/>',
+  balloons:'<ellipse cx="18" cy="15" rx="7" ry="9"/><ellipse class="a" cx="31" cy="19" rx="7" ry="9"/><path d="M18 24l6 18M31 28l-7 14"/>',
+  umbrella:'<path d="M6 24a18 18 0 0 1 36 0z"/><path d="M24 24v14a4 4 0 0 1-8 0"/><path class="a" d="M24 6v-2"/>',
+  gifts:'<rect x="10" y="20" width="28" height="21"/><rect x="8" y="14" width="32" height="6"/><path class="a" d="M24 14v27M24 14c-4-7-11-6-9-1M24 14c4-7 11-6 9-1"/>',
+  toilet:'<rect x="9" y="8" width="30" height="34" rx="3"/><path d="M24 8v34"/><circle class="a" cx="17" cy="17" r="2.5"/><circle class="a" cx="31" cy="17" r="2.5"/><path d="M17 21v12M31 21l-3 12h6z"/>',
+  restaurant:'<circle cx="26" cy="25" r="12"/><circle class="a" cx="26" cy="25" r="6"/><path d="M8 8v12a3 3 0 0 0 3 3v17M11 8v10M14 8v12a3 3 0 0 1-3 3"/>',
+  xmas:'<path d="M24 5l10 14h-6l8 12H12l8-12h-6z"/><path d="M24 31v9M18 40h12"/><circle class="a" cx="24" cy="5" r="2"/>',
+  hotel:'<rect x="10" y="8" width="28" height="34"/><path class="a" d="M16 15h4v4h-4zM28 15h4v4h-4zM16 24h4v4h-4zM28 24h4v4h-4z"/><path d="M21 42v-7h6v7"/>',
+  th_classic:'<path d="M7 40L24 9l17 31z"/><path class="a" d="M24 9V4l6 2-6 2"/><path d="M20 40l4-10 4 10"/>',
+  th_pirates:'<path d="M6 32h36l-6 9H12z"/><path d="M24 32V6"/><path class="a" d="M24 8l13 11H24z"/><path d="M24 12L13 26h11"/>',
+  th_western:'<path d="M5 31c6 4 32 4 38 0"/><path d="M14 31c0-15 4-19 10-19s10 4 10 19"/><path class="a" d="M14 26h20"/>',
+  th_fantasy:'<path d="M8 42V18l5-6 5 6v24M30 42V18l5-6 5 6v24M18 42V26h12v16"/><path class="a" d="M22 42v-7h4v7"/>',
+  th_space:'<circle cx="24" cy="24" r="11"/><path class="a" d="M6 30c8 6 32-6 36-14 1-3-4-3-8-1"/><path class="a" d="M6 30c-2-3 2-6 8-8"/>',
+  th_jungle:'<path d="M24 42V20"/><path d="M24 20c-8-8-16-6-18 0 6-3 12-2 18 0zM24 20c8-8 16-6 18 0-6-3-12-2-18 0zM24 20c-4-9 0-14 4-15-2 5-2 10-4 15z"/><path class="a" d="M16 42h16"/>',
+  th_horror:'<path d="M12 24a12 12 0 0 1 24 0v8l-3 3v6H15v-6l-3-3z"/><circle class="a" cx="19" cy="24" r="3"/><circle class="a" cx="29" cy="24" r="3"/><path d="M21 37v4M27 37v4"/>',
+};
+const ico=k=>ICO[k]?`<svg class="ico" viewBox="0 0 48 48">${ICO[k]}</svg>`:'';
+const ACH=[
+  ['g100','Premiers visiteurs','Accueillir 100 visiteurs',()=>S.totalGuests>=100],
+  ['g1k','Ça décolle','1 000 visiteurs au total',()=>S.totalGuests>=1000],
+  ['g10k','Parc populaire','10 000 visiteurs au total',()=>S.totalGuests>=10000],
+  ['g50k','Institution nationale','50 000 visiteurs au total',()=>S.totalGuests>=50000],
+  ['r70','Bien noté','Atteindre 70 % de note',()=>S.rating>=70],
+  ['r80','Excellent','Atteindre 80 % de note',()=>S.rating>=80],
+  ['r90','Légendaire','Atteindre 90 % de note',()=>S.rating>=90],
+  ['rides5','Fête foraine','Posséder 5 attractions',()=>rides().length>=5],
+  ['rides10','Méga-parc','Posséder 10 attractions',()=>rides().length>=10],
+  ['lvl3','Perfectionniste','Une attraction au niveau 3',()=>S.b.some(b=>b.lvl>=3)],
+  ['custom','Ingénieur','Concevoir des montagnes russes sur mesure',()=>S.b.some(b=>b.cfg)],
+  ['extreme','Âmes sensibles s’abstenir','Montagnes russes de 15 en frissons ou plus',()=>S.b.some(b=>b.cfg&&b.cfg.exc>=15)],
+  ['hotel','Hôtelier','Ouvrir l’hôtel du parc',()=>!!S.hotel],
+  ['hotel4','Palace','Un hôtel 4 étoiles',()=>!!(S.hotel&&S.hotel.stars>=4)],
+  ['full','Complet !','Remplir l’hôtel à 100 %',()=>!!(S.hotel&&S.hotel.rooms&&S.hotel.occ>=S.hotel.rooms)],
+  ['pass200','Fidélité','200 abonnés actifs',()=>!!(S.pass&&S.pass.holders>=200)],
+  ['staff10','Grande équipe','10 employés',()=>S.staff.length>=10],
+  ['expert','Équipe d’élite','5 employés de niveau 3',()=>S.staff.filter(m=>m.lvl>=3).length>=5],
+  ['rdall','Visionnaire','Rechercher toutes les technologies',()=>!!(S.rd&&S.rd.done.length>=Object.keys(TECHS).length)],
+  ['day10k','Jackpot','10 000 € de recettes en un jour',()=>Math.max(S.bestDay||0,dayIncome())>=10000],
+  ['day50k','Machine à cash','50 000 € de recettes en un jour',()=>Math.max(S.bestDay||0,dayIncome())>=50000],
+  ['m1','Millionnaire','1 000 000 € en caisse',()=>S.money>=1e6],
+  ['loan0','Sans dettes','Rembourser entièrement un prêt',()=>!!S.repaidLoan],
+  ['year1','Première année','Terminer une année complète',()=>yearOf(S.day)>=2],
+  ['year5','Pilier du secteur','Atteindre l’an 5',()=>yearOf(S.day)>=5],
+  ['rank1','Parc de l’année','Finir premier du classement annuel',()=>!!(S.yearRes&&S.yearRes.pos===1)],
+  ['winter','Esprit de Noël','Ouvrir une saison d’hiver',()=>!!S.winter],
+  ['clean','Zéro panne','Une saison entière sans panne (3 attractions min.)',()=>!!S.cleanSeason],
+  ['crisis5','Sang-froid','Gérer 5 crises',()=>(S.crisisCount||0)>=5],
+  ['events4','Organisateur','Organiser 4 événements spéciaux',()=>(S.spCount||0)>=4],
+  ['parks3','Empire','Posséder 3 parcs',()=>PARKS.length>=3],
+  ['opa','Prédateur','Racheter un concurrent',()=>(S.rivalsBought||0)>=1],
+  ['ipo','Coté en bourse','Introduire le groupe en bourse',()=>!!GROUP.stock],
+  ['camp','Héros de la campagne','Réussir toutes les missions',()=>campDone()>=MISSIONS.length],
+];
+let ACHG={};try{ACHG=JSON.parse(localStorage.getItem('pm_ach')||'{}')||{};}catch(_){}
+function checkAch(){if(!S)return;let ch=false;for(const[id,n,,f]of ACH){if(ACHG[id])continue;let ok=false;try{ok=f();}catch(_){}if(ok){ACHG[id]=new Date().toLocaleDateString('fr-BE');ch=true;toast(`Trophée débloqué : ${n}`);sfx.goal();news(`Trophée débloqué : ${n}.`);}}
+  if(ch)try{localStorage.setItem('pm_ach',JSON.stringify(ACHG));}catch(_){}}
 const LOC=()=>LOCS[S.loc||'liege'];
 function parcelDef(i,loc){const L=LOCS[loc||S.loc],q=L.parcels[i],t=TRAITS[q[1]];return{i,name:q[0],trait:q[1],size:q[2],price:Math.round(q[2]*1300*L.land*t.price/100)*100};}
 const owned=()=>S.parcels.map(i=>parcelDef(i));
@@ -365,15 +442,18 @@ const traitOf=b=>TRAITS[parcelDef(b.parcel).trait];
 const lc=t=>t.startsWith('L’')?'l’'+t.slice(2):t.charAt(0).toLowerCase()+t.slice(1);
 function applyTheme(){const T=THEMES[S.theme||'classic'];for(const k in CATALOG){const it=CATALOG[k];it.base=it.base||it.name;it.name=(T.names&&T.names[k])||it.base;}DECOR.themed={...T.decor};}
 const DOW=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'],DOWM=[.8,.8,1.1,.85,1,1.5,1.4];
-const dowOf=d=>(d-1)%7;
+const dowOf=d=>(d-1+(S&&S.dowOff||0))%7;
+const WL=10;
+const inWinter=d=>!!(S&&S.winter&&(d===S.day||(d===S.day+1&&S.winterDay<WL)));
 const SEASON_LEN=14,YEAR_LEN=42;
-const SEASONS=[{n:'Printemps',e:'🌷',arr:.85,w:[.34,.38,.22,.06]},{n:'Été',e:'☀️',arr:1.35,w:[.5,.26,.1,.14]},{n:'Automne',e:'🍂',arr:.8,w:[.2,.42,.34,.04]}];
-const seasonOf=d=>Math.floor(((d-1)%YEAR_LEN)/SEASON_LEN),yearOf=d=>Math.floor((d-1)/YEAR_LEN)+1,dayIn=d=>((d-1)%SEASON_LEN)+1;
-const isHoliday=d=>{const se=seasonOf(d),k=dayIn(d);return se===1||(se===0&&k>=6&&k<=12)||(se===2&&k>=8&&k<=12);};
-const holidayName=d=>{const se=seasonOf(d);return se===1?'Grandes vacances':se===0?'Vacances de Pâques':'Congé de Toussaint';};
+const SEASONS=[{n:'Printemps',e:'🌷',arr:.85,w:[.34,.38,.22,.06,0]},{n:'Été',e:'☀️',arr:1.35,w:[.5,.26,.1,.14,0]},{n:'Automne',e:'🍂',arr:.8,w:[.2,.42,.34,.04,0]},{n:'Hiver',e:'❄️',arr:.5,w:[.15,.35,.15,0,.35]}];
+const seasonOf=d=>inWinter(d)?3:Math.floor(((d-1)%YEAR_LEN)/SEASON_LEN),yearOf=d=>Math.floor((d-1)/YEAR_LEN)+1,dayIn=d=>inWinter(d)?(d===S.day?S.winterDay:S.winterDay+1):((d-1)%SEASON_LEN)+1;
+const isHoliday=d=>{const se=seasonOf(d),k=dayIn(d);return (se===3&&k>=4&&k<=8)||se===1||(se===0&&k>=6&&k<=12)||(se===2&&k>=8&&k<=12);};
+const holidayName=d=>{const se=seasonOf(d);return se===3?'Vacances de Noël':se===1?'Grandes vacances':se===0?'Vacances de Pâques':'Congé de Toussaint';};
 const SPECIALS={
   easter:{n:'Chasse aux œufs de Pâques',e:'🐣',season:0,cost:2500,arr:1.4,seg:{family:1.8},happy:5,d:'Les familles accourent pour chercher les œufs.'},
   fireworks:{n:'Grand feu d’artifice',e:'🎆',season:1,cost:4500,arr:1.55,seg:{},happy:8,d:'Un spectacle qui attire tout le monde.'},
+  xmas:{n:'Grande parade de Noël',e:'🎅',season:3,cost:5000,arr:1.8,seg:{family:1.4},happy:8,d:'Le Père Noël défile dans le parc : magique pour les familles.'},
   halloween:{n:'Nuit d’Halloween',e:'🎃',season:2,cost:6000,arr:1.9,seg:{teen:1.5},happy:6,d:'L’événement de l’année pour les ados (encore plus fort dans un parc Horreur).'},
   rock:{n:'Festival rock',e:'🎸',season:null,cost:5000,arr:1.6,seg:{teen:2},happy:4,d:'Les ados débarquent en masse.'},
   seniors:{n:'Journée rétro des seniors',e:'🎻',season:null,cost:2000,arr:1.25,seg:{senior:2},happy:4,d:'Bal musette et tarifs doux : les seniors adorent.'},
@@ -439,11 +519,12 @@ const rides=()=>S.b.filter(b=>C(b).t==='ride');
 const shops=()=>S.b.filter(b=>C(b).t==='shop');
 const hasKind=k=>S.b.some(b=>C(b).kind===k)?1:0;
 const usedPlots=()=>S.b.reduce((s,b)=>s+P(b).plots,0);
-const dayIncome=()=>S.today.entry+S.today.rides+S.today.shops+(S.today.hotel||0)+(S.today.pass||0);
-const dayExtraExp=()=>(S.today.ingr||0)+(S.today.hotelCost||0);
+const dayIncome=()=>S.today.entry+S.today.rides+S.today.shops+(S.today.hotel||0)+(S.today.pass||0)+(S.today.parking||0);
+const dayExtraExp=()=>(S.today.ingr||0)+(S.today.hotelCost||0)+(S.today.access||0);
+const accessMult=()=>{const A=S.access||{};const st=owned().some(q=>q.trait==='station');return(A.parking?1-Math.max(0,A.parkPrice-4)*.02:.93)*(A.shuttle?(st?1.04:1.08):1)*(A.rail?1.12:1);};
 const hotelFair=()=>Math.round(40+(S.hotel?S.hotel.stars:1)*25+S.rating*.4);
 const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
-const pickWeather=()=>{const lw=S&&S.loc?LOC().w:[.4,.35,.19,.06],sw=SEASONS[S?seasonOf(S.day+1):0].w,w=lw.map((x,i)=>(x+sw[i])/2),r=Math.random();return r<w[0]?'sun':r<w[0]+w[1]?'cloud':r<w[0]+w[1]+w[2]?'rain':'heat';};
+const pickWeather=()=>{const K=['sun','cloud','rain','heat','snow'],se=S?seasonOf(S.day+1):0,lw=S&&S.loc?LOC().w:[.4,.35,.19,.06],sw=SEASONS[se].w,w=K.map((_,i)=>se===3?sw[i]:((lw[i]||0)+sw[i])/2),tot=w.reduce((a,x)=>a+x,0);let r=Math.random()*tot;for(let i=0;i<K.length;i++){r-=w[i];if(r<=0)return K[i];}return 'cloud';};
 const exc=b=>P(b).exc*(1+.15*(b.lvl-1))*(has('vr')?1.1:1)*(THEMES[S.theme||'classic'].bonus.includes(b.type)?1.15:1)*(b.parcel!=null&&traitOf(b).bonus&&traitOf(b).bonus[b.type]||1);
 const cap=b=>Math.round(P(b).cap*(1+.35*(b.lvl-1)));
 const rate=b=>C(b).rate*(1+.5*(b.lvl-1))*(has('kitchen')?1.3:1)*(b.parcel!=null&&traitOf(b).shop||1);
@@ -458,7 +539,7 @@ let S=null, guests=[], speed=1, acc=0, last=0, modal=false, tab='home', holding=
 function newDay(){return{entry:0,rides:0,shops:0,guests:0,build:0,upkeep:0,wages:0,marketing:0,interest:0,events:0};}
 function newGame(cfg){
   cfg=cfg||{};const lk=cfg.loc||'liege',L=LOCS[lk],dk=cfg.diff||'normal';
-  S={name:cfg.name||'Mon parc',theme:cfg.theme||'classic',loc:lk,parcels:[],diff:dk,rival:{...L.rival},money:cfg.money??DIFFS[dk].money,day:1,time:OPEN,entry:15,bins:0,staff:[],cands:[],rd:{level:0,cur:null,prog:0,done:[]},fpPrice:10,pass:{price:0,holders:0,sold:0},hotel:null,
+  S={name:cfg.name||'Mon parc',theme:cfg.theme||'classic',loc:lk,parcels:[],diff:dk,rival:{...L.rival},money:cfg.money??DIFFS[dk].money,day:1,time:OPEN,entry:15,bins:0,staff:[],cands:[],rd:{level:0,cur:null,prog:0,done:[]},fpPrice:10,pass:{price:0,holders:0,sold:0},hotel:null,access:{parking:false,parkPrice:3,shuttle:false,rail:false},
     decor:{},campaigns:[],loan:0,dirt:0,totalGuests:0,rating:50,rb:{hap:65,beauty:0,variety:0,clean:100},
     b:[],nid:1,goal:0,today:newDay(),history:[],thoughts:{},news:[],bestDay:0,series:[],
     weather:'sun',forecast:'sun',event:null,press:false,seenWelcome:false,reviews:[]};
@@ -475,7 +556,7 @@ function thought(k,g){S.thoughts[k]=(S.thoughts[k]||0)+1;if(g&&!THOUGHTS[k].good
 // ====================== SIMULATION ======================
 function beautyScore(){let p=0;for(const q of owned())p+=TRAITS[q.trait].beauty||0;for(const k in S.decor)p+=DECOR[k].pts*S.decor[k];return clamp(p*100/(20+usedPlots()*5),0,100)*(S.sponsorDays>0?.75:1);}
 function cleanScore(){return 100*Math.exp(-S.dirt/(40+guests.length*.2));}
-function appeal(){let a=0;for(const b of rides())a+=exc(b)*(b.broken||b.closed?.5:1);return a;}
+function appeal(){let a=0;for(const b of rides())if(!((C(b).winter&&!S.winter)||(b.type==='flume'&&S.winter)))a+=exc(b)*(b.broken||b.closed?.5:1);return a;}
 function compF(){return clamp(1+(S.rating-S.rival.rating)/80,.65,1.35);}
 function fairEntry(){return Math.round(8+Math.min(50,appeal()*1.2));}
 function crowd(){let c=30;for(const b of S.b){const it=C(b);c+=it.t==='ride'?cap(b)*2:it.kind==='toilet'?6:8;}return guests.length/c;}
@@ -485,7 +566,7 @@ function arrivalRate(){
   const fair=fairEntry();
   const pf=S.entry<=fair?1+(fair-S.entry)/fair*.3:Math.max(0,1-(S.entry-fair)/fair*1.4);
   const tf=clamp(1-((S.time-13*60)/(6*60))**2*.6,.3,1);
-  return Math.pow(Math.min(ap,80)/80,.85)*1.7*Math.min(1,1/Math.max(.01,S._crowd||0))*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*SEASONS[seasonOf(S.day)].arr*(SP()?SP().arr*(S.special==='halloween'&&S.theme==='horror'?1.3:1):1)*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*compF()*(S.theme==='horror'&&S.time>=17*60?1.4:1)*(S.rivalPromo?.85:1)*LOC().pop*(dowOf(S.day)>=5||isHoliday(S.day)?LOC().tour:1)*(1+Math.max(0,...owned().map(q=>TRAITS[q.trait].arr||0)))*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
+  return Math.pow(Math.min(ap,80)/80,.85)*1.7*Math.min(1,1/Math.max(.01,S._crowd||0))*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*SEASONS[seasonOf(S.day)].arr*(SP()?SP().arr*(S.special==='halloween'&&S.theme==='horror'?1.3:1):1)*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*accessMult()*compF()*(S.theme==='horror'&&S.time>=17*60?1.4:1)*(S.rivalPromo?.85:1)*LOC().pop*(dowOf(S.day)>=5||isHoliday(S.day)?LOC().tour:1)*(1+Math.max(0,...owned().map(q=>TRAITS[q.trait].arr||0)))*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
 }
 function segWeights(){const w={};for(const k in SEGS){let a=1;for(const b of rides())if(!b.broken)a+=exc(b)*aff(k,exc(b));w[k]=SEGS[k].share*a*(SP()&&SP().seg[k]||1)*THEMES[S.theme||'classic'].seg[k]*LOC().seg[k]*(k==='family'&&isHoliday(S.day)?1.5:1)*(k==='teen'&&dowOf(S.day)===2?1.4:1);}return w;}
 function spawn(isPass){
@@ -493,7 +574,7 @@ function spawn(isPass){
   const cash=rnd(...SEGS[seg].cash)*D().cash;
   const g={st:'walk',t:rnd(2,5),target:null,leaving:false,hunger:rnd(0,35),thirst:rnd(0,35),bladder:rnd(0,30),fun:rnd(10,40),
     seg,happy:rnd(68,85)+(SP()?SP().happy:0),cash,stay:rnd(150,420),visited:new Set(),souv:false,umb:false,qT:0};
-  if(isPass){g.pass=true;g.happy+=5;}else{S.money+=S.entry;S.today.entry+=S.entry;}S.today.guests++;S.totalGuests++;
+  if(isPass){g.pass=true;g.happy+=5;}else{S.money+=S.entry;S.today.entry+=S.entry;}S.today.guests++;S.totalGuests++;S.segY=S.segY||{family:0,teen:0,senior:0};S.segY[seg]++;
   if(!g.pass&&S.pass&&S.pass.price>0){const fp=fairEntry()*5;if(Math.random()<clamp(.1*fp/S.pass.price,0,.22)*(seg==='family'?1.2:seg==='senior'?1.1:.8)){S.pass.holders++;S.pass.sold++;S.money+=S.pass.price;S.today.pass=(S.today.pass||0)+S.pass.price;g.happy+=3;}}
   if(has('fastpass')&&S.fpPrice>0&&Math.random()<clamp(.35*(12/S.fpPrice),0,.6)*(seg==='teen'?1.2:seg==='senior'?.5:1)){g.fp=true;S.money+=S.fpPrice;S.today.rides+=S.fpPrice;}
   const fair=fairEntry();
@@ -510,7 +591,7 @@ function decide(g){
   for(const b of S.b){
     const it=C(b);let s=0;
     if(it.t==='ride'){
-      if(b.broken||b.closed||(b.shutUntil&&S.time<b.shutUntil))continue;rideOpt=true;
+      if(b.broken||b.closed||(b.shutUntil&&S.time<b.shutUntil)||(C(b).winter&&!S.winter)||(b.type==='flume'&&S.winter))continue;rideOpt=true;
       s=(100-g.fun)/100*exc(b)*aff(g.seg,exc(b))*(g.visited.has(b.id)?.3:1)/(1+b.queue.length/cap(b)*.8);
       if(b.type==='flume'&&S.weather==='heat')s*=1.6;
     }else{
@@ -521,6 +602,7 @@ function decide(g){
         case'ice':s=(g.hunger>30||g.thirst>30)?(g.hunger+g.thirst)/95*(S.weather==='heat'||S.weather==='sun'?1.4:1):0;break;
         case'souvenir':s=(!g.souv&&g.happy>65&&g.cash>b.price+10)?(g.seg==='senior'?.9:.6):0;break;
         case'umbrella':s=(S.weather==='rain'&&!g.umb)?3:0;break;
+        case'xmas':s=S.winter&&!g.xm?1.2:0;break;
         case'toilet':s=g.bladder>55?g.bladder/18:0;break;
         case'restaurant':s=g.hunger>40?g.hunger/25*({senior:1.6,family:1.2,teen:.5}[g.seg]):0;break;
       }
@@ -563,6 +645,7 @@ function serve(g,b){
     case'souvenir':g.happy+=8;g.souv=true;break;
     case'umbrella':g.umb=true;g.happy+=6;break;
     case'toilet':g.bladder=0;g.happy+=2;break;
+    case'xmas':g.xm=true;g.hunger=Math.max(0,g.hunger-30);g.thirst=Math.max(0,g.thirst-40);g.happy+=7;litter();break;
     case'restaurant':g.hunger=0;g.thirst=Math.max(0,g.thirst-50);g.bladder+=15;g.happy+=g.seg==='senior'?10:7;break;
   }
   g.st='busy';g.t=it.kind==='toilet'?3:it.kind==='restaurant'?25:2;
@@ -613,7 +696,7 @@ function tick(){
   for(const b of S.b){
     const it=C(b);
     if(it.t==='shop'){
-      if(it.kind==='umbrella'&&S.weather!=='rain'){continue;}
+      if((it.kind==='umbrella'&&S.weather!=='rain')||(it.winter&&!S.winter)){continue;}
       b.acc+=rate(b);while(b.acc>=1&&b.queue.length){serve(b.queue.shift(),b);b.acc-=1;}if(!b.queue.length)b.acc=Math.min(b.acc,1);
       continue;
     }
@@ -629,7 +712,7 @@ function tick(){
       b.wait++;
       if(b.queue.length>=cap(b)*.5||b.wait>=4){
         if(Math.random()<(100-b.rel)/600*(has('predictive')?.6:1)){
-          b.broken=true;b.repairT=30;
+          b.broken=true;b.repairT=30;S.seasonBreaks=(S.seasonBreaks||0)+1;
           for(const g of b.queue){g.happy-=6;thought('broken',g);g.visited.add(b.id);decide(g);}
           b.queue=[];
           news(`🔧 Panne : ${it.e} ${it.name}${M()?' — un mécanicien intervient.':' — aucun mécanicien pour réparer !'}`);
@@ -664,6 +747,7 @@ function runEvent(ev){
   }
 }
 function checkGoals(){
+  if(S&&S.time%10===0)checkAch();
   const G=GOALS[S.goal];if(!G)return;
   if(G.p()>=1){sfx.goal();S.money+=G.r;S.today.events+=G.r;S.goal++;news(`🏆 Objectif réussi : ${G.t} (+${fmt(G.r)})`);toast(`🏆 Objectif réussi ! +${fmt(G.r)}`);
     if(S.goal>=GOALS.length)setTimeout(()=>openSheet(winHTML),600);}
@@ -675,6 +759,8 @@ function endDay(){
   const rdc=RDL[S.rd.level].cost,wages=staffWages(),interest=Math.round(S.loan*.005)+rdc;S.today.rd=rdc;
   if(rdc&&S.rd.cur){S.rd.prog+=RDL[S.rd.level].pts;const T=TECHS[S.rd.cur];if(S.rd.prog>=T.pts){S.rd.done.push(S.rd.cur);news(`🔬 Recherche terminée : ${T.e} ${T.n} !`);toast(`🔬 Nouvelle technologie : ${T.n}`);S.rd.cur=null;S.rd.prog=0;}}
   S.today.upkeep=up;S.today.wages=wages;S.today.interest=interest-rdc;S.money-=up+wages+interest;
+  {const A=S.access||{};let ac=0;if(A.parking){const cars=Math.round(S.today.guests*.3);S.today.parking=cars*A.parkPrice;S.money+=S.today.parking;ac+=60;}
+    if(A.shuttle)ac+=150;if(A.rail)ac+=100+Math.round(S.today.entry*.05);S.today.access=ac;S.money-=ac;}
   if(S.hotel&&S.hotel.rooms){const H=S.hotel,fair=hotelFair(),pf=H.price<=fair?1+(fair-H.price)/fair*.4:Math.max(0,1-(H.price-fair)/fair*1.6);
     const dem=(S.today.guests*.1+(isHoliday(S.day+1)?40:0)+(dowOf(S.day+1)>=5?25:0))*(S.rating/70)*LOC().tour*pf*(1+.15*(H.stars-1));
     H.occ=Math.min(H.rooms,Math.round(dem));const rev=H.occ*H.price,cost=H.occ*18+H.rooms*4+200;
@@ -683,13 +769,13 @@ function endDay(){
   const inc=dayIncome();S.bestDay=Math.max(S.bestDay||0,inc);
   S.year=S.year||{guests:0,inc:0,exp:0};S.year.guests+=S.today.guests;S.year.inc+=inc;S.year.exp+=up+wages+interest+S.today.marketing+dayExtraExp();
   S.history.push({day:S.day,guests:S.today.guests,inc,exp:up+wages+interest+S.today.marketing+dayExtraExp(),rating:S.rating});
-  if(S.history.length>14)S.history.shift();
+  if(S.history.length>60)S.history.shift();
   if(S.influencer){if(S.rating>=70){S.buzz=3;news(`🤳 ${S.influencer} a adoré ton parc ! Sa vidéo cartonne : affluence en hausse pendant 3 jours.`);}
     else{S.rating=Math.max(0,S.rating-8);news(`🤳 ${S.influencer} a publié une critique sévère : ta note chute de 8 points.`);}S.influencer=null;}
   stockDay();
   for(let i=0;i<PARKS.length;i++){if(i===CUR||!PARKS[i])continue;const q=PARKS[i],hs=(q.history||[]).slice(-5);const avg=hs.length?hs.reduce((a,h)=>a+h.inc-h.exp,0)/hs.length:0;
     q.money=Math.round((q.money||0)+avg*.85);q.directorDays=(q.directorDays||0)+1;}
-  checkGoals();
+  checkAch();checkGoals();
   {const M=MS();if(M){const p=M.check(),win=M.final?(S.day>=M.days&&p>=1):p>=1;
     if(win||S.day>=M.days){S.mission.over=true;S.mission.win=win;if(win){const i=MISSIONS.findIndex(m=>m.id===M.id);try{if(campDone()<i+1)localStorage.setItem('pm_camp',String(i+1));}catch(_){}news(`Mission réussie : ${M.n} !`);sfx.goal();}else news(`Mission échouée : ${M.n}.`);
       save();openSheet(missionEndHTML);return;}}}
@@ -703,36 +789,43 @@ function yearEnd(){
   const rank=[{name:S.name,rating:S.rating,me:1},{name:S.rival.name,rating:Math.round(S.rival.rating)},...S.nat].sort((a,b)=>b.rating-a.rating);
   const pos=rank.findIndex(r=>r.me)+1,prize=[0,15000,7000,3000][pos]||0;
   let winter=fixedCosts()*10;for(const b of S.b)winter+=upkeep(b)*4;winter+=staffWages()*6;
-  S.money+=prize-winter;
+  S.money+=prize;
   S.yearRes={yr,Y,rank,pos,prize,winter};
   news(`🏆 Bilan de l’an ${yr} : ${pos}${pos===1?'er':'e'} au classement des parcs${prize?` (prime de ${fmt(prize)})`:''}. Frais d’hiver : ${fmt(winter)}.`);
   stockYear(S.yearRes.Y);
   if(S.pass&&S.pass.holders){news(`${num(S.pass.holders)} pass annuels arrivent à expiration.`);S.pass.holders=0;}
+  S.years=(S.years||[]).concat([{yr:S.yearRes.yr,guests:S.yearRes.Y.guests,inc:S.yearRes.Y.inc,exp:S.yearRes.Y.exp,rating:S.rating,pos:S.yearRes.pos}]);
+  for(const b of S.b){b.yrVis=0;b.yrRev=0;b.yrDays=0;}S.segY={family:0,teen:0,senior:0};
   S.year={guests:0,inc:0,exp:0};
 }
-function yearHTML(){const r=S.yearRes;return`<h2>❄️ Fin de l’an ${r.yr}</h2><div class="sub">Le parc ferme pour l’hiver. Voici ton bilan annuel.</div>
+function yearHTML(){const r=S.yearRes;return`<h2>❄️ Fin de l’an ${r.yr}</h2><div class="sub">Voici ton bilan annuel. L’hiver arrive : tu peux fermer, ou tenter une saison d’hiver de ${WL} jours.</div>
   <div class="kpis" style="margin-top:12px"><div class="kpi"><div class="k">Visiteurs de l’année</div><div class="v">${num(r.Y.guests)}</div></div><div class="kpi"><div class="k">Recettes</div><div class="v">${fmt(r.Y.inc)}</div></div>
   <div class="kpi"><div class="k">Résultat</div><div class="v ${r.Y.inc-r.Y.exp>=0?'pos':'negt'}">${fmt(r.Y.inc-r.Y.exp)}</div></div></div>
   <h3>Classement des parcs</h3><table><tr><th>#</th><th style="text-align:left">Parc</th><th>Note</th></tr>${r.rank.map((p,i)=>`<tr${p.me?' style="color:var(--gold);font-weight:800"':''}><td>${['🥇','🥈','🥉'][i]||i+1}</td><td style="text-align:left">${p.name}</td><td>${p.rating} %</td></tr>`).join('')}</table>
-  <h3>Hiver</h3><table><tr><td>${r.prize?'🏆 Prime du classement':'Pas de prime cette année'}</td><td class="pos">${fmt(r.prize)}</td></tr><tr><td>❄️ Entretien hivernal, salaires et frais fixes</td><td class="negt">${fmt(-r.winter)}</td></tr></table>
-  <div class="sheetacts"><button class="btn" data-a="next">🌷 Ouvrir la saison de l’an ${r.yr+1}</button></div>`;}
+  <h3>Hiver</h3><table><tr><td>${r.prize?'Prime du classement':'Pas de prime cette année'}</td><td class="pos">${fmt(r.prize)}</td></tr><tr><td>Fermeture : entretien hivernal, salaires et frais fixes</td><td class="negt">${fmt(-r.winter)}</td></tr><tr><td>Saison d’hiver : frais de préparation (puis charges normales chaque jour)</td><td class="negt">${fmt(-r.winter*.3)}</td></tr></table>
+  <p class="sub">En hiver : affluence réduite, neige, pas de rivière rapide (gel). La patinoire, le marché de Noël et la parade de Noël ne fonctionnent qu’à cette saison.</p>
+  <div class="sheetacts"><button class="btn sec" data-a="winterClose">Fermer jusqu’au printemps</button><button class="btn teal" data-a="winterOpen">Ouvrir la saison d’hiver</button></div>`;}
 function nextDay(){
-  S.day++;S.time=OPEN;S.today=newDay();S.series=[];
-  for(const b of S.b){b.yRev=(b.todayRev||0)-upkeep(b);b.yVis=b.todayVis||0;b.todayVis=0;b.todayRev=0;b.closed=false;if(C(b).t==='ride'){b.age=(b.age||0)+1;b.rel=Math.min(b.rel,maxRel(b));if(b.age===25)news(`🧓 ${C(b).e} ${bname(b)} vieillit : pense à la rénover.`);}}
+  if(S.winter){S.winterDay++;S.dowOff=(S.dowOff||0)+1;if(S.winterDay>WL){S.winter=false;S.winterDay=0;S.day++;S.dowOff--;news('Fin de la saison d’hiver : place au printemps !');}}else S.day++;
+  S.time=OPEN;S.today=newDay();S.series=[];
+  for(const b of S.b){b.yrVis=(b.yrVis||0)+(b.todayVis||0);b.yrRev=(b.yrRev||0)+(b.todayRev||0);b.yrDays=(b.yrDays||0)+1;b.yRev=(b.todayRev||0)-upkeep(b);b.yVis=b.todayVis||0;b.todayVis=0;b.todayRev=0;b.closed=false;if(C(b).t==='ride'){b.age=(b.age||0)+1;b.rel=Math.min(b.rel,maxRel(b));if(b.age===25)news(`🧓 ${C(b).e} ${bname(b)} vieillit : pense à la rénover.`);}}
   staffDay();
   S.privateAt=null;S.concert=false;S.special=null;S.rivalPromo=false;if(S.buzz>0)S.buzz--;if(S.sponsorDays>0)S.sponsorDays--;
   const rv=S.rival;rv.base=rv.base||rv.rating;{const tg=clamp(rv.base+(S.rating-55)*.35+(yearOf(S.day)-1)*3,45,85);rv.rating=clamp(rv.rating+(tg-rv.rating)*.08+rnd(-1.5,1.5),35,93);}
   const rr=Math.random();
   if(rr<.07){rv.rating=Math.min(95,rv.rating+6);news(`🏰 ${rv.name} inaugure une nouvelle attraction : leur note grimpe à ${Math.round(rv.rating)} %.`);}
-  else if(rr<.13){S.rivalPromo=true;news(`🏷️ ${rv.name} lance une promo aujourd’hui : une partie du public part chez eux.`);}
+  else if(rr<.13||(S.entry>fairEntry()*1.15&&rr<.25)){S.rivalPromo=true;news(`${rv.name} casse ses prix aujourd’hui : une partie du public part chez eux.`);}
+  else if(rr<.18){const m=S.staff.filter(x=>x.morale<55).sort((a,b)=>a.morale-b.morale)[0];if(m){S.staff=S.staff.filter(x=>x!==m);news(`${rv.name} débauche ${m.name} (${ROLES[m.role].n}) en lui offrant un meilleur salaire !`);toast(`${m.name} part chez ${rv.name}`);}}
+  else if(rr<.22&&rides().length){const b=rides().slice().sort((a,c)=>exc(c)-exc(a))[0];rv.rating=Math.min(95,rv.rating+3);news(`${rv.name} copie ${bname(b)} avec une attraction très semblable : leur note grimpe.`);}
   S.campaigns=S.campaigns.map(c=>({...c,days:c.days-1})).filter(c=>c.days>0);
   S.weather=S.forecast;S.forecast=pickWeather();S.press=false;S.event=null;
   const r=Math.random();
   if(r<.12){S.event={type:'school',time:600+(Math.random()*240|0)};}
   else if(r<.22){S.event={type:'inspection',time:900};news('📋 Une inspection sanitaire est annoncée pour 15h00 aujourd’hui.');}
   else if(r<.3&&S.rating>=55){S.press=true;news('📰 Un journal publie un article élogieux sur ton parc : affluence en hausse aujourd’hui !');}
-  if(dayIn(S.day)===1)news(`${SEASONS[seasonOf(S.day)].e} Début ${seasonOf(S.day)===1?'de l’':'du '}${SEASONS[seasonOf(S.day)].n.toLowerCase()} de l’an ${yearOf(S.day)} !`);
-  S.special=S.planned||null;S.planned=null;if(S.special)news(`${SPECIALS[S.special].e} Aujourd’hui : ${SPECIALS[S.special].n} !`);
+  if(dayIn(S.day)===1&&!S.winter){if(S.day>1&&!(S.seasonBreaks||0)&&rides().length>=3)S.cleanSeason=true;S.seasonBreaks=0;}
+  if(dayIn(S.day)===1&&!S.winter)news(`${SEASONS[seasonOf(S.day)].e} Début ${seasonOf(S.day)===1?'de l’':'du '}${SEASONS[seasonOf(S.day)].n.toLowerCase()} de l’an ${yearOf(S.day)} !`);
+  S.special=S.planned||null;S.planned=null;if(S.special)S.spCount=(S.spCount||0)+1;if(S.special)news(`${SPECIALS[S.special].e} Aujourd’hui : ${SPECIALS[S.special].n} !`);
   news(`${WEATHER[S.weather].e} ${DOW[dowOf(S.day)]} — météo : ${WEATHER[S.weather].n}.`);
   S.rep=(S.rep||[]).map(x=>({...x,days:x.days-1})).filter(x=>x.days>0);
   for(const b of S.b){b.shutUntil=0;if(b.closedDays>0){b.closedDays--;b.closed=true;}}
@@ -807,7 +900,12 @@ function act(a,v,el){
     case'ipo':if(canIPO()){const V=valuation();GROUP.stock={own:70,price:V/100/1000,shares:100000,sat:60,hist:[],ipoVal:V};S.money+=Math.round(V*.3);news(`Introduction en bourse réussie : 30 % du groupe vendus pour ${fmt(V*.3)}.`);toast('Ton groupe est coté en bourse !');sfx.goal();}break;
     case'buyback':{const st=GROUP.stock;if(!st)break;const c=Math.round(st.price*1000*5*1.1);if(spend(c)){st.own+=5;if(st.own>=100){GROUP.stock=null;news('Tu as racheté toutes les actions : le groupe quitte la bourse.');}else news(`Rachat de 5 % des actions pour ${fmt(c)}.`);}break;}
     case'sellShares':{const st=GROUP.stock;if(!st||st.own<=55)break;const c=Math.round(st.price*1000*5*.95);st.own-=5;S.money+=c;st.sat=Math.max(0,st.sat-3);news(`Vente de 5 % des actions pour ${fmt(c)}.`);break;}
-    case'crisis':{const c=S.crisisData;if(c){CRISES[c.id].o[+v].f(c);S.crisisData=null;calcRating();}closeSheet();render();return;}
+    case'parkBuild':if(!S.access.parking&&spend(8000)){S.access.parking=true;news('Parking ouvert.');}break;
+    case'parkPrice':S.access.parkPrice=clamp(S.access.parkPrice+ +v,0,15);break;
+    case'shuttle':S.access.shuttle=!S.access.shuttle;break;
+    case'rail':if(!S.access.rail&&!S.access.railSigned){if(!spend(5000))break;S.access.railSigned=true;news('Partenariat signé avec la SNCB : billets combinés train + entrée.');}S.access.rail=!S.access.rail;break;
+    case'opa':if(confirmKey!=='opa'){confirmKey='opa';break;}confirmKey=null;if(S.money>=opaPrice()){absorbRival();sfx.goal();toast('Concurrent racheté !');}break;
+    case'crisis':{const c=S.crisisData;if(c){S.crisisCount=(S.crisisCount||0)+1;CRISES[c.id].o[+v].f(c);S.crisisData=null;calcRating();}closeSheet();render();return;}
     case'hotelBuild':if(!S.hotel&&spend(25000)){S.hotel={rooms:40,stars:1,price:70,occ:0,hist:[],nextGuests:0};news('Ouverture de l’hôtel du parc : 40 chambres.');toast('Hôtel ouvert !');sfx.build();}break;
     case'hotelRooms':if(S.hotel&&S.hotel.rooms<200&&spend(15000)){S.hotel.rooms+=40;toast(`Hôtel : ${S.hotel.rooms} chambres`);}break;
     case'hotelStar':if(S.hotel&&S.hotel.stars<4&&spend(20000*S.hotel.stars)){S.hotel.stars++;toast(`Hôtel ${S.hotel.stars} étoiles`);}break;
@@ -823,21 +921,23 @@ function act(a,v,el){
       if(S.campaigns.some(x=>x.k===v)){toast('Cette campagne est déjà en cours');return;}
       if(spend(c.cost,'marketing')){S.campaigns.push({k:v,days:c.days});news(`📣 Campagne lancée : ${c.e} ${c.name} (${c.days} jours).`);toast('📣 Campagne lancée');}break;}
     case'borrow':if(S.loan<50000){S.loan+=10000;S.money+=10000;news('🏦 Emprunt de 10 000 € contracté.');}break;
-    case'repay':if(S.loan>0&&S.money>=10000){S.loan-=10000;S.money-=10000;news('🏦 10 000 € de prêt remboursés.');}else toast('💸 Il faut 10 000 € pour rembourser');break;
+    case'repay':if(S.loan>0&&S.money>=10000){S.loan-=10000;S.money-=10000;if(S.loan<=0)S.repaidLoan=true;news('🏦 10 000 € de prêt remboursés.');}else toast('💸 Il faut 10 000 € pour rembourser');break;
     case'close':closeSheet();return;
-    case'next':if(S.day%YEAR_LEN===0&&!S.yearDone){S.yearDone=true;yearEnd();openSheet(yearHTML);return;}S.yearDone=false;nextDay();return;
+    case'winterClose':S.money-=S.yearRes.winter;S.yearDone=false;news('Le parc ferme pour l’hiver.');nextDay();return;
+    case'winterOpen':S.money-=Math.round(S.yearRes.winter*.3);S.yearDone=false;S.winter=true;S.winterDay=0;news('Ouverture de la saison d’hiver !');nextDay();return;
+    case'next':if(S.day%YEAR_LEN===0&&!S.yearDone&&!S.winter){S.yearDone=true;yearEnd();openSheet(yearHTML);return;}S.yearDone=false;nextDay();return;
     case'special':{const sp=SPECIALS[v];if(S.planned){toast('Un événement est déjà prévu demain');return;}
       if(spend(sp.cost,'marketing')){S.planned=v;S.spUsed=S.spUsed||{};S.spUsed[v]=yearOf(S.day)*10+seasonOf(S.day);news(`🗓️ Événement réservé pour demain : ${sp.e} ${sp.n}.`);toast(`${sp.e} Prévu demain !`);}break;}
     
     case'new':if(confirmKey!=='new'){confirmKey='new';break;}
     case'newOk':try{localStorage.removeItem(SAVE_KEY);}catch(_){}PARKS=[];CUR=0;GROUP={stock:null};wiz=newWiz();confirmKey=null;tab='home';render();openSheet(welcomeHTML);return;
   }
-  if(a!=='sell'&&a!=='new'&&a!=='fire'&&a!=='rdPick')confirmKey=null;
+  if(a!=='sell'&&a!=='new'&&a!=='fire'&&a!=='rdPick'&&a!=='opa')confirmKey=null;
   render();
 }
 
 // ====================== INTERFACE ======================
-const TABS=[['home','📊 Tableau de bord'],['rides','🎢 Attractions'],['shops','🍔 Boutiques'],['land','🗺️ Terrains'],['staff','👷 Personnel'],['rd','🔬 Recherche'],['park','🌳 Parc'],['fin','💰 Finances'],['hotel','Hôtel & pass'],['group','🏢 Groupe'],['goals','🎯 Objectifs']];
+const TABS=[['home','📊 Tableau de bord'],['rides','🎢 Attractions'],['shops','🍔 Boutiques'],['land','🗺️ Terrains'],['staff','👷 Personnel'],['rd','🔬 Recherche'],['park','🌳 Parc'],['fin','💰 Finances'],['hotel','Hôtel & pass'],['report','Rapports'],['group','🏢 Groupe'],['goals','🎯 Objectifs & trophées']];
 function stp(a,v,val,extra){return`<div class="stp"><button data-a="${a}" data-v="${v}" data-d="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="${v}" data-d="1" ${extra||''}>+</button></div>`;}
 function stp2(a,val,extra){return`<div class="stp"><button data-a="${a}" data-v="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="1" ${extra||''}>+</button></div>`;}
 function barH(v,col){return`<div class="bar"><i style="width:${clamp(v,0,100)}%;background:${col||(v<40?'#ff5d7a':v<65?'#ffb703':'#2ec4b6')}"></i></div>`;}
@@ -846,7 +946,7 @@ function header(){
   const m=$('#hMoney');m.innerHTML=`<span class="pl">Caisse</span>${fmt(S.money)}`;m.classList.toggle('neg',S.money<0);
   $('#hGuests').innerHTML=`<span class="pl">Visiteurs</span>${num(guests.length)}`;
   $('#hRating').innerHTML=`<span class="pl">Note</span>${S.rating} %`;
-  $('#hTime').innerHTML=`<span class="pl">${SEASONS[seasonOf(S.day)].n} · ${WEATHER[S.weather].n}</span>${DOW[dowOf(S.day)].slice(0,3)}. ${dayIn(S.day)}/${SEASON_LEN} · An ${yearOf(S.day)} · ${hhmm(S.time)}`;
+  $('#hTime').innerHTML=`<span class="pl">${SEASONS[seasonOf(S.day)].n} · ${WEATHER[S.weather].n}</span>${DOW[dowOf(S.day)].slice(0,3)}. ${dayIn(S.day)}/${S.winter?WL:SEASON_LEN} · An ${yearOf(S.day)} · ${hhmm(S.time)}`;
   const broken=S.b.some(b=>b.broken);
   $('#nav').innerHTML=noE(TABS.map(([k,l])=>`<button data-a="tab" data-v="${k}" class="${tab===k?'on':''}">${l}${k==='rides'&&broken?'<span class="dot"></span>':''}</button>`).join(''));
 }
@@ -865,7 +965,7 @@ function render(){
   header();
   let h='';
   switch(tab){
-    case'home':h=homeHTML();break;case'rides':h=ridesHTML();break;case'shops':h=shopsHTML();break;case'land':h=landHTML();break;case'staff':h=staffHTML();break;case'hotel':h=hotelHTML();break;case'group':h=groupHTML();break;case'rd':h=rdHTML();break;
+    case'home':h=homeHTML();break;case'rides':h=ridesHTML();break;case'shops':h=shopsHTML();break;case'land':h=landHTML();break;case'staff':h=staffHTML();break;case'report':h=reportHTML();break;case'hotel':h=hotelHTML();break;case'group':h=groupHTML();break;case'rd':h=rdHTML();break;
     case'park':h=parkHTML();break;case'fin':h=finHTML();break;case'goals':h=goalsHTML();break;
   }
   $('#content').innerHTML=noE(h);
@@ -891,16 +991,17 @@ function tips(){
   const sw=segWeights(),tw=sw.teen/(sw.family+sw.teen+sw.senior);
   if(R.length>=3&&tw<.15)add(3,'🧑‍🎤','Peu d’ados viennent : ils veulent des sensations fortes (⚡ 5 et plus).','rides');
     if(R.length&&S.entry<fairEntry()*.7)add(3,'🎟️',`Ton entrée est bon marché : tu pourrais monter vers ${fairEntry()} €.`,'park');
-  const hol=isHoliday(S.day+1)&&!isHoliday(S.day)&&S.day%YEAR_LEN!==0;
+  const hol=isHoliday(S.day+1)&&!isHoliday(S.day)&&!(S.day%YEAR_LEN===0&&!S.winter);
   if(hol||dowOf(S.day+1)===5)add(2,'📅',hol?`${holidayName(S.day+1)} dès demain : attends-toi à beaucoup de familles !`:'Le week-end arrive demain : grosse affluence attendue, vérifie tes capacités.','home');
   const old=R.find(b=>(b.age||0)>=25);if(old)add(4,'🧓',`${C(old).name} est usée (fiabilité max ${Math.round(maxRel(old))} %) : une rénovation s’impose.`,'rides');
   if(S.rival&&S.rival.rating>S.rating+5)add(5,'🏰',`${S.rival.name} est mieux noté que toi : il te vole des visiteurs.`,'home');
   {const se=seasonOf(S.day+1),cand=Object.entries(SPECIALS).find(([k,sp])=>sp.season===se&&!(S.spUsed&&S.spUsed[k]===yearOf(S.day)*10+seasonOf(S.day)));
-   if(cand&&!S.planned&&S.money>cand[1].cost*2&&dayIn(S.day)>=8&&S.day%YEAR_LEN!==0)add(3,cand[1].e,`Pense à organiser l’événement de saison : ${cand[1].n}.`,'fin');}
+   if(cand&&!S.planned&&S.money>cand[1].cost*2&&dayIn(S.day)>=8&&!(S.day%YEAR_LEN===0&&!S.winter))add(3,cand[1].e,`Pense à organiser l’événement de saison : ${cand[1].n}.`,'fin');}
   if(S.day%YEAR_LEN===YEAR_LEN-1)add(4,'❄️','Dernier jour de l’année demain : l’hiver coûte cher, garde de la trésorerie.','fin');
   {const low=S.staff.filter(m=>m.morale<35);if(low.length)add(6,'😤',`${low.length} employé(s) ont un moral très bas : augmente-les ou forme-les avant qu’ils ne partent.`,'staff');}
   if(S.strike)add(9,'✊','Grève en cours : augmente les salaires pour éviter que ça recommence.','staff');
   if((S._crowd||0)>1.1)add(7,'😵','Ton parc est saturé : construis des attractions et des stands pour absorber la foule.','rides');
+  if(!S.access.parking&&S.today.guests>150)add(4,'🅿','Pas de parking : une partie des visiteurs renonce à venir.','park');
   if(!T.length)add(0,'👍','Tout roule ! Continue à développer ton parc.','home');
   return T.sort((a,b)=>b.p-a.p).slice(0,4);
 }
@@ -914,7 +1015,7 @@ function homeHTML(){
     <div class="kpi"><div class="k">Visiteurs aujourd’hui</div><div class="v">${num(S.today.guests)}</div><div class="s">${num(guests.length)} dans le parc</div></div>
     <div class="kpi"><div class="k">Note du parc</div><div class="v">${S.rating} %</div><div class="s">Satisfaction ${Math.round(S.rb.hap)} %</div></div>
     <div class="kpi"><div class="k">Propreté</div><div class="v">${Math.round(S.rb.clean)} %</div><div class="s">Beauté ${Math.round(S.rb.beauty)} %</div></div>
-    <div class="kpi"><div class="k">${SEASONS[seasonOf(S.day)].e} ${SEASONS[seasonOf(S.day)].n} · an ${yearOf(S.day)}</div><div class="v">${DOW[dowOf(S.day)]}</div><div class="s">Jour ${dayIn(S.day)}/${SEASON_LEN} · ${isHoliday(S.day)?'🏖️ '+holidayName(S.day):dowOf(S.day)>=5?'week-end':'semaine'}</div></div>
+    <div class="kpi"><div class="k">${SEASONS[seasonOf(S.day)].e} ${SEASONS[seasonOf(S.day)].n} · an ${yearOf(S.day)}</div><div class="v">${DOW[dowOf(S.day)]}</div><div class="s">Jour ${dayIn(S.day)}/${S.winter?WL:SEASON_LEN} · ${isHoliday(S.day)?'🏖️ '+holidayName(S.day):dowOf(S.day)>=5?'week-end':'semaine'}</div></div>
     <div class="kpi"><div class="k">Météo</div><div class="v">${W.e} ${W.n}</div><div class="s">Demain : ${F.e} ${F.n}</div></div>
   </div>`;
   h+=`<div class="panel"><h3>💡 Conseiller</h3>${tips().map(t=>`<div class="row"><div class="l" style="font-weight:600"><span style="font-size:20px;margin-right:6px">${t.e}</span>${t.t}</div>${t.tab!==tab?`<button class="btn sm sec" data-a="tab" data-v="${t.tab}">Voir →</button>`:''}</div>`).join('')}</div>`;
@@ -925,7 +1026,8 @@ function homeHTML(){
    h+=`<div class="two"><div class="panel"><h3>🏰 Concurrence</h3>
      <div class="need"><div class="h"><span>🎡 Ton parc</span><span>${S.rating} %</span></div>${barH(S.rating,'#2ec4b6')}</div>
      <div class="need"><div class="h"><span>🏰 ${rv.name}</span><span>${Math.round(rv.rating)} %</span></div>${barH(rv.rating,'#ff5d7a')}</div>
-     <p class="sub">${cf>=1?`Ta meilleure réputation t’apporte <b class="pos">+${Math.round((cf-1)*100)} %</b> de visiteurs.`:`${rv.name} te prend <b class="negt">${Math.round((1-cf)*100)} %</b> de visiteurs : améliore ta note !`}</p></div>
+     <p class="sub">${cf>=1?`Ta meilleure réputation t’apporte <b class="pos">+${Math.round((cf-1)*100)} %</b> de visiteurs.`:`${rv.name} te prend <b class="negt">${Math.round((1-cf)*100)} %</b> de visiteurs : améliore ta note !`}</p>
+     <div class="acts"><button class="btn sm ${confirmKey==='opa'?'red':'sec'}" data-a="opa" ${S.money<opaPrice()||PARKS.length>=10?'disabled':''}>${confirmKey==='opa'?'Confirmer le rachat ?':`Racheter ${rv.name} (${fmt(opaPrice())})`}</button></div></div>
      <div class="panel"><h3>⚡ En cours aujourd’hui</h3>${eff.length?eff.map(e=>`<div class="th">${e}</div>`).join(''):'<p class="sub">Rien de particulier aujourd’hui.</p>'}</div></div>`;}
   // affluence
   const pts=S.series,max=Math.max(20,...pts);
@@ -960,6 +1062,8 @@ function status(b){
   const it=C(b);
   if(it.t==='ride')return b.running?`<span class="st ok">En marche</span>`:`<span class="st wait">${b.queue.length?'Embarquement':'En attente'}</span>`;
   if(it.kind==='umbrella'&&S.weather!=='rain')return`<span class="st wait">Fermé (pas de pluie)</span>`;
+  if(it.winter&&!S.winter)return`<span class="st wait">Fermé (hors hiver)</span>`;
+  if(b.type==='flume'&&S.winter)return`<span class="st wait">Fermé (gel)</span>`;
   return`<span class="st ok">Ouvert</span>`;
 }
 function ridesHTML(){
@@ -968,7 +1072,7 @@ function ridesHTML(){
   if(!list.length)return h+`<div class="empty">Aucune attraction pour l’instant.<br><button class="btn teal" data-a="catalog" data-v="ride">＋ Construire une attraction</button></div>`;
   h+='<div class="cards">';
   for(const b of list){const it=C(b),f=fairRide(b);
-    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${bname(b)}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
+    h+=`<div class="card"><div class="ch"><span class="big">${ico(b.type)}</span><div><b>${bname(b)}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
       <div class="mini"><span>File d’attente</span><b>${b.queue.length} / ${cap(b)*3}</b></div>${barH(b.queue.length/(cap(b)*3)*100,'#4cc9f0')}
       <div class="mini"><span>Fiabilité</span><b>${Math.round(b.rel)} %</b></div>${barH(b.rel)}
       ${b.cfg?`<div class="mini"><span>Sur mesure</span><b>${b.cfg.height} m · ${b.cfg.loops} looping(s) · <span class="st ${intensity(exc(b))[1]}" style="margin:0">${intensity(exc(b))[0]}</span></b></div>`:''}
@@ -991,7 +1095,7 @@ function shopsHTML(){
   if(!list.length)return h+`<div class="empty">Aucune boutique. Les visiteurs auront vite faim et soif !<br><button class="btn teal" data-a="catalog" data-v="shop">＋ Construire une boutique</button></div>`;
   h+='<div class="cards">';
   for(const b of list){const it=C(b);
-    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${bname(b)}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
+    h+=`<div class="card"><div class="ch"><span class="big">${ico(b.type)}</span><div><b>${bname(b)}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
       <div class="mini"><span>File d’attente</span><b>${b.queue.length}</b></div>${barH(b.queue.length/(rate(b)*10)*100,'#4cc9f0')}
       <div class="mini"><span>Service</span><b>${rate(b).toFixed(1)} clients / min</b></div>
       <div class="mini"><span>Aujourd’hui</span><b>${num(b.todayVis||0)} clients · ${fmt(b.todayRev||0)}</b></div>
@@ -1007,6 +1111,10 @@ function parkHTML(){
   let h=goalBar()+`<div class="two"><div class="panel"><h3>Accueil</h3>
     <div class="row"><div class="l">🎟️ Prix d’entrée<small>Les attractions sont comprises dans l’entrée · prix juste estimé : ${fair} € (augmente avec tes attractions)</small></div><div class="stp"><button data-a="entry" data-v="-5">−5</button><button data-a="entry" data-v="-1">−</button><b>${S.entry} €</b><button data-a="entry" data-v="1">+</button><button data-a="entry" data-v="5">+5</button></div></div>
     <div class="row"><div class="l">🗑️ Poubelles<small>60 € pièce · une poubelle pour ~35 visiteurs</small></div>${stp2('bins',S.bins)}</div></div>
+  <div class="panel"><h3>Accès au parc</h3>
+    <div class="row"><div class="l">Parking<small>${S.access.parking?`Environ 1 visiteur sur 3 vient en voiture · entretien 60 €/jour · au-delà de 4 €, certains renoncent`:'Sans parking, 7 % des visiteurs renoncent à venir'}</small></div>${S.access.parking?`<div class="stp"><button data-a="parkPrice" data-v="-1">−</button><b>${S.access.parkPrice} €</b><button data-a="parkPrice" data-v="1">+</button></div>`:`<button class="btn sm" data-a="parkBuild" ${S.money<8000?'disabled':''}>Construire (${fmt(8000)})</button>`}</div>
+    <div class="row"><div class="l">Navettes depuis la gare<small>+8 % de visiteurs (+4 % si ton terrain est déjà près d’une gare) · 150 €/jour</small></div><button class="btn sm ${S.access.shuttle?'teal':'sec'}" data-a="shuttle">${S.access.shuttle?'Activées':'Activer'}</button></div>
+    <div class="row"><div class="l">Billet combiné train + entrée (SNCB)<small>+12 % de visiteurs · 100 €/jour + 5 % de commission sur les entrées${S.access.railSigned?'':' · signature 5 000 €'}</small></div><button class="btn sm ${S.access.rail?'teal':'sec'}" data-a="rail">${S.access.rail?'Actif':'Activer'}</button></div></div>
   <div class="panel"><h3>Note du parc : ${S.rating} %</h3>
     ${[['hap','😊 Bonheur des visiteurs','45 %'],['variety','🎢 Variété de l’offre','20 %'],['beauty','🌳 Beauté du parc','20 %'],['clean','🧹 Propreté','15 %']].map(([k,l,w])=>`<div class="need"><div class="h"><span>${l} <span class="sub">(${w})</span></span><span>${Math.round(rb[k])} %</span></div>${barH(rb[k])}</div>`).join('')}</div></div>`;
   h+=`<div class="panel"><h3>Embellissement · beauté ${Math.round(rb.beauty)} %</h3><p class="sub">Plus le parc est grand, plus il faut de décor pour garder une bonne note de beauté. Le décor n’utilise pas d’emplacement.</p>`;
@@ -1033,7 +1141,7 @@ function finHTML(){
     h+=`<div class="panel"><h3>Recettes <span style="color:#2ec4b6">■</span> et charges <span style="color:#ff5d7a">■</span> par jour</h3>${svg}
     <table><tr><th>Jour</th><th>Visiteurs</th><th>Note</th><th>Recettes</th><th>Charges</th><th>Résultat</th></tr>${S.history.slice().reverse().map(d=>`<tr><td>${d.day}</td><td>${num(d.guests)}</td><td>${d.rating} %</td><td>${fmt(d.inc)}</td><td>${fmt(d.exp)}</td><td class="${d.inc-d.exp>=0?'pos':'negt'}">${fmt(d.inc-d.exp)}</td></tr>`).join('')}</table></div>`;}
   {const se=seasonOf(S.day);h+=`<div class="panel"><h3>🎉 Événements spéciaux</h3><p class="sub">Réserve un événement pour demain. Un seul par jour, chacun une fois par saison.${S.planned?` <b style="color:var(--gold)">Prévu demain : ${SPECIALS[S.planned].e} ${SPECIALS[S.planned].n}</b>`:''}${S.special?` · Aujourd’hui : ${SP().e} ${SP().n}`:''}</p>`;
-    for(const k in SPECIALS){const sp=SPECIALS[k],okSeason=sp.season==null||sp.season===seasonOf(S.day+1),used=S.spUsed&&S.spUsed[k]===yearOf(S.day)*10+se,last=S.day%YEAR_LEN===0;
+    for(const k in SPECIALS){const sp=SPECIALS[k],okSeason=sp.season==null||sp.season===seasonOf(S.day+1),used=S.spUsed&&S.spUsed[k]===yearOf(S.day)*10+se,last=(S.day%YEAR_LEN===0&&!S.winter)||(S.winter&&S.winterDay>=WL);
       h+=`<div class="row" style="${okSeason?'':'opacity:.45'}"><div class="l">${sp.e} ${sp.n}<small>${sp.d} · +${Math.round((sp.arr-1)*100)} % de visiteurs${sp.season!=null?` · ${SEASONS[sp.season].e} ${SEASONS[sp.season].n} uniquement`:''}</small></div>${used?'<span class="st ok">Déjà fait cette saison</span>':`<button class="btn sm teal" data-a="special" data-v="${k}" ${okSeason&&!S.planned&&!last?'':'disabled'}>${fmt(sp.cost)}</button>`}</div>`;}
     h+='</div>';}
   h+=`<div class="two"><div class="panel"><h3>Marketing ${marketingBoost()?`· +${Math.round(marketingBoost()*100)} % de visiteurs`:''}</h3>`;
@@ -1046,7 +1154,9 @@ function finHTML(){
   return h;
 }
 function goalsHTML(){
-  let h='<div class="panel"><h3>Objectifs</h3>';
+  const got=ACH.filter(a=>ACHG[a[0]]).length;
+  let h=`<div class="panel"><h3>Trophées · ${got} / ${ACH.length}</h3><p class="sub">Les trophées sont conservés d’une partie à l’autre sur cet appareil.</p><div class="cat" style="margin-top:8px">${ACH.map(([id,n,d])=>`<div class="ci" style="${ACHG[id]?'border-color:rgba(255,209,102,.6)':'opacity:.45'}"><b style="${ACHG[id]?'color:var(--gold)':''}">${ACHG[id]?'★ ':''}${n}</b><span class="d">${d}</span>${ACHG[id]?`<span class="d">Obtenu le ${ACHG[id]}</span>`:''}</div>`).join('')}</div></div>`;
+  h+='<div class="panel"><h3>Objectifs</h3>';
   GOALS.forEach((G,i)=>{const done=i<S.goal,cur=i===S.goal,p=clamp(G.p(),0,1);
     h+=`<div class="goal" style="${i>S.goal?'opacity:.5':''}"><div class="ic">${done?'✓':cur?'›':'·'}</div><div style="flex:1"><div style="font-weight:700">${G.t}</div>${cur?`<div style="margin-top:6px">${barH(p*100,'#2ec4b6')}</div>`:''}</div><div class="sub" style="font-weight:800">+${fmt(G.r)}</div></div>`;});
   h+='</div><div class="panel"><h3>Prochains déblocages</h3>';
@@ -1060,12 +1170,12 @@ function catalogHTML(kind){
   return`<h2>${kind==='ride'?'🎢 Construire une attraction':'🍔 Construire une boutique'}</h2><div class="sub">Place libre : ${free} emplacement(s) · plus grand espace d’un seul tenant : ${maxFree} · Budget : ${fmt(S.money)}</div><h3>Catalogue</h3><div class="cat">${list.map(it=>{
     const lock=S.totalGuests<it.unlock,noRoom=it.plots>maxFree,noMoney=S.money<it.cost,th=THEMES[S.theme].bonus.includes(it.id);
     const info=it.t==='ride'?`⚡ ${it.exc} · ${it.cap} places · ${it.plots} empl. · entretien ${it.upkeep} €/j`:`${it.plots} empl. · entretien ${it.upkeep} €/j`;
-    return`<div class="ci${lock?' locked':''}"><span class="e">${it.e}</span><b>${it.name}</b>${th?`<span><span class="tag gold">${THEMES[S.theme].e} Bonus thème</span></span>`:''}<span class="d">${it.d}</span><span class="d">${info}</span>
+    return`<div class="ci${lock?' locked':''}"><span class="e">${ico(it.id)}</span><b>${it.name}</b>${th?`<span><span class="tag gold">${THEMES[S.theme].e} Bonus thème</span></span>`:''}<span class="d">${it.d}</span><span class="d">${info}</span>
       ${lock?`<button class="btn sm sec" disabled>🔒 ${num(it.unlock)} visiteurs</button>`:`<button class="btn sm ${noRoom||noMoney?'sec':''}" data-a="${it.id==='coaster'?'design':'build'}" data-v="${it.id}" ${noRoom||(noMoney&&it.id!=='coaster')?'disabled':''}>${noRoom?'Pas assez de place':it.id==='coaster'?'🛠️ Concevoir (dès 15 000 €)':fmt(it.cost)}</button>`}</div>`;}).join('')}</div>
   <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;
 }
 function rebrandHTML(){return`<h2>🎭 Changer de thème</h2><div class="sub">Coût du changement : ${fmt(5000)} · tes attractions seront renommées et les bonus changeront.</div>
-  <div class="cat" style="margin-top:12px">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${S.theme===k?' sel':''}" data-a="rebrand" data-v="${k}" ${S.theme!==k&&S.money<5000?'disabled':''}><span class="e">${t.e}</span><b>${t.n}${S.theme===k?' (actuel)':''}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base).join(', ')}</span></button>`).join('')}</div>
+  <div class="cat" style="margin-top:12px">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${S.theme===k?' sel':''}" data-a="rebrand" data-v="${k}" ${S.theme!==k&&S.money<5000?'disabled':''}><span class="e">${ico('th_'+k)}</span><b>${t.n}${S.theme===k?' (actuel)':''}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base).join(', ')}</span></button>`).join('')}</div>
   <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;}
 function designHTML(){
   const c=coasterStats(dz),[lab,cls]=intensity(c.exc*(has('vr')?1.1:1)),free=Math.max(0,...S.parcels.map(freeIn)),mx=has('extreme')?{height:120,loops:7}:{height:80,loops:4};
@@ -1110,6 +1220,24 @@ function stockYear(Y){const st=GROUP.stock;if(!st)return;const prof=Y.inc-Y.exp,
   st.sat=clamp(st.sat+(div>0?8:-10)+(grow?6:-15),0,100);if(!grow)st.price*=.85;
   news(`Actionnaires : ${fmt(div)} de dividendes versés. Satisfaction ${st.sat} %${grow?'':' — ils reprochent le manque de croissance'}.`);
   if(st.sat<30){st.price*=.8;S.money-=20000;news('Assemblée générale houleuse : les actionnaires imposent un plan d’économies coûteux (−20 000 €).');}}
+const RIVAL_NAMES=['Magic World','Funtastic','Wonder Kingdom','Parc des Merveilles','Adventure Valley','Happy Hills','Mega Fun','Royaume du Rire'];
+const opaPrice=()=>Math.round((120000+S.rival.rating*3000)*(1+(S.rivalsBought||0)*.5)/1000)*1000;
+function absorbRival(){
+  const rv={...S.rival},loc=S.loc,keep=CUR,myName=S.name,myRating=S.rating;
+  S.money-=opaPrice();S.rivalsBought=(S.rivalsBought||0)+1;
+  const nr={name:pick(RIVAL_NAMES.filter(n=>n!==rv.name)),rating:44,base:44};S.rival=nr;
+  news(`Rachat réussi : ${rv.name} rejoint ton groupe ! Un nouveau concurrent apparaît : ${nr.name}.`);
+  save();
+  newGame({name:rv.name,theme:pick(Object.keys(THEMES)),loc,diff:S.diff,parcel:0,money:0});
+  S.parcels=[0,1,2,3];S.money=30000;S.today.build=0;
+  const n=clamp(Math.round((rv.rating-40)/7),2,7),pool=['teacups','carousel','bumper','ferris','haunted','drop','flume'];
+  for(let i=0;i<n;i++){const t=pool[i],pi=S.parcels.find(q=>freeIn(q)>=CATALOG[t].plots);if(pi!=null){const b=mkB(t,pi);b.age=20;b.rel=80;}}
+  for(const t of['burger','drinks','toilet']){const pi=S.parcels.find(q=>freeIn(q)>=1);if(pi!=null)mkB(t,pi);}
+  for(const r of['janitor','mechanic']){const m=makeCand();m.role=r;m.salary=fairWage(m);S.staff.push(m);}
+  S.rating=Math.round(rv.rating);S.totalGuests=3000;S.entry=fairEntry();S.bins=3;S.seenWelcome=true;S.rival={name:myName,rating:myRating,base:myRating};
+  S.history=[{day:0,guests:300,inc:5000+rv.rating*90,exp:3500,rating:S.rating}];S.news=[];news(`${S.name} fait désormais partie de ton groupe.`);
+  PARKS.push(strip(S));hydrate(PARKS[keep]);CUR=keep;save();
+}
 const canExpand=()=>S.money>=EXPAND_COST+20000&&S.rating>=60&&S.totalGuests>=1000&&PARKS.length<Object.keys(LOCS).length;
 function groupHTML(){
   const all=PARKS.map((q,i)=>i===CUR?S:q).filter(Boolean);
@@ -1118,7 +1246,7 @@ function groupHTML(){
     <div class="kpi"><div class="k">👥 Visiteurs cumulés</div><div class="v">${num(all.reduce((a,q)=>a+(q.totalGuests||0),0))}</div></div></div>`;
   h+='<div class="cards">';
   PARKS.forEach((q0,i)=>{const q=i===CUR?S:q0;if(!q)return;const T=THEMES[q.theme]||THEMES.classic,L=LOCS[q.loc]||LOCS.liege,hs=(q.history||[]).slice(-5),avg=hs.length?hs.reduce((a,x)=>a+x.inc-x.exp,0)/hs.length:0;
-    h+=`<div class="card"><div class="ch"><span class="big">${T.e}</span><div><b>${q.name}</b><span class="sub">${L.e} ${L.n} · ${T.n}</span></div>${i===CUR?'<span class="st ok">Tu le gères</span>':'<span class="st wait">Directeur</span>'}</div>
+    h+=`<div class="card"><div class="ch"><span class="big">${ico('th_'+q.theme)}</span><div><b>${q.name}</b><span class="sub">${L.e} ${L.n} · ${T.n}</span></div>${i===CUR?'<span class="st ok">Tu le gères</span>':'<span class="st wait">Directeur</span>'}</div>
       <div class="mini"><span>Trésorerie</span><b>${fmt(q.money||0)}</b></div>
       <div class="mini"><span>Note</span><b>${q.rating} %</b></div>
       <div class="mini"><span>Résultat moyen / jour</span><b class="${avg>=0?'pos':'negt'}">${fmt(avg)}</b></div>
@@ -1159,6 +1287,24 @@ function hotelHTML(){
     <div class="row"><div class="l">Prix du pass<small>${P.price?`Prix juste ≈ ${fp} €`:'Pas en vente pour l’instant'} · touche + pour lancer la vente</small></div><div class="stp"><button data-a="passPrice" data-v="-10">−</button><b>${P.price?P.price+' €':'—'}</b><button data-a="passPrice" data-v="10">+</button></div></div>`;
   return h+'</div></div>';
 }
+function reportHTML(){
+  const Y=S.year||{guests:0,inc:0,exp:0},yr=yearOf(S.day);
+  let h=goalBar()+`<div class="kpis"><div class="kpi"><div class="k">An ${yr} · visiteurs</div><div class="v">${num(Y.guests)}</div></div><div class="kpi"><div class="k">Recettes de l’année</div><div class="v">${fmt(Y.inc)}</div></div>
+    <div class="kpi"><div class="k">Charges de l’année</div><div class="v">${fmt(Y.exp)}</div></div><div class="kpi"><div class="k">Résultat de l’année</div><div class="v ${Y.inc-Y.exp>=0?'pos':'negt'}">${fmt(Y.inc-Y.exp)}</div></div></div>`;
+  const rs=rides().map(b=>{const days=b.yrDays||0,vis=b.yrVis||0,cost=upkeep(b)*days,per=vis?cost/vis:Infinity;return{b,vis,cost,per};}).sort((a,b)=>a.per-b.per);
+  const verdict=x=>x.vis===0?['Pas encore de données','wait']:x.per<.6?['Star','ok']:x.per<1.5?['Rentable','ok']:x.per<3?['À surveiller','wait']:['Boulet','ko'];
+  h+=`<div class="panel"><h3>Attractions — année en cours</h3><table><tr><th>Attraction</th><th>Visiteurs</th><th>Entretien</th><th>Coût / visiteur</th><th>Verdict</th></tr>${rs.map(x=>{const v=verdict(x);return`<tr><td>${bname(x.b)}</td><td>${num(x.vis)}</td><td>${fmt(x.cost)}</td><td>${x.vis?(x.per).toFixed(2).replace('.',',')+' €':'—'}</td><td><span class="st ${v[1]}" style="margin:0">${v[0]}</span></td></tr>`;}).join('')||'<tr><td colspan="5">Aucune attraction.</td></tr>'}</table></div>`;
+  const ss=shops().map(b=>{const days=b.yrDays||0,rev=b.yrRev||0,ingr=hasQ(b)?rev*qOf(b).cost:0,prof=rev-ingr-upkeep(b)*days;return{b,rev,prof,vis:b.yrVis||0};}).sort((a,b)=>b.prof-a.prof);
+  h+=`<div class="panel"><h3>Boutiques — année en cours</h3><table><tr><th>Boutique</th><th>Clients</th><th>Recettes</th><th>Bénéfice estimé</th></tr>${ss.map(x=>`<tr><td>${bname(x.b)}</td><td>${num(x.vis)}</td><td>${fmt(x.rev)}</td><td class="${x.prof>=0?'pos':'negt'}">${fmt(x.prof)}</td></tr>`).join('')||'<tr><td colspan="4">Aucune boutique.</td></tr>'}</table></div>`;
+  const sg=S.segY||{family:0,teen:0,senior:0},tot=sg.family+sg.teen+sg.senior||1;
+  const hs=S.history.slice(),best=hs.slice().sort((a,b)=>(b.inc-b.exp)-(a.inc-a.exp))[0],worst=hs.slice().sort((a,b)=>(a.inc-a.exp)-(b.inc-b.exp))[0];
+  h+=`<div class="two"><div class="panel"><h3>Clientèle de l’année</h3>${Object.keys(SEGS).map(k=>`<div class="need"><div class="h"><span>${SEGS[k].n} <span class="sub">· ${num(sg[k])}</span></span><span>${Math.round(sg[k]/tot*100)} %</span></div>${barH(sg[k]/tot*100,'#4cc9f0')}</div>`).join('')}</div>
+    <div class="panel"><h3>Meilleur et pire jour</h3>${best?`<div class="row"><div class="l">Meilleur jour : jour ${best.day}<small>${num(best.guests)} visiteurs · note ${best.rating} %</small></div><b class="pos">${fmt(best.inc-best.exp)}</b></div>
+      <div class="row"><div class="l">Pire jour : jour ${worst.day}<small>${num(worst.guests)} visiteurs · note ${worst.rating} %</small></div><b class="${worst.inc-worst.exp>=0?'pos':'negt'}">${fmt(worst.inc-worst.exp)}</b></div>`:'<p class="sub">Pas encore de journée terminée.</p>'}</div></div>`;
+  const ys=(S.years||[]).concat([{yr,guests:Y.guests,inc:Y.inc,exp:Y.exp,rating:S.rating,pos:null,cur:1}]);
+  h+=`<div class="panel"><h3>Comparaison d’une année à l’autre</h3><table><tr><th>Année</th><th>Visiteurs</th><th>Recettes</th><th>Résultat</th><th>Note</th><th>Classement</th></tr>${ys.map(y=>`<tr><td>An ${y.yr}${y.cur?' (en cours)':''}</td><td>${num(y.guests)}</td><td>${fmt(y.inc)}</td><td class="${y.inc-y.exp>=0?'pos':'negt'}">${fmt(y.inc-y.exp)}</td><td>${y.rating} %</td><td>${y.pos?y.pos+(y.pos===1?'er':'e'):'—'}</td></tr>`).join('')}</table></div>`;
+  return h;
+}
 function staffHTML(){
   let h=goalBar();
   h+=`<div class="kpis">${Object.entries(ROLES).map(([k,r])=>`<div class="kpi"><div class="k">${r.e} ${r.p}</div><div class="v">${S.staff.filter(m=>m.role===k).length}</div><div class="s">Efficacité ${power(k).toFixed(1)}</div></div>`).join('')}
@@ -1191,10 +1337,10 @@ function landHTML(){
 function dayHTML(){
   const T=S.today,inc=dayIncome(),exp=T.upkeep+T.wages+T.marketing+T.interest+(T.rd||0)+dayExtraExp(),res=inc-exp,F=WEATHER[S.forecast];
   return`<h2>🌙 Fin du jour ${S.day}</h2><div class="sub">${num(T.guests)} visiteurs · note du parc ${S.rating} %</div>
-  <h3>Recettes</h3><table><tr><td>🎟️ Entrées</td><td>${fmt(T.entry)}</td></tr><tr><td>🍔 Boutiques</td><td>${fmt(T.shops)}</td></tr>${T.rides?`<tr><td>Coupe-file</td><td>${fmt(T.rides)}</td></tr>`:''}${T.pass?`<tr><td>Pass annuels vendus</td><td>${fmt(T.pass)}</td></tr>`:''}${T.hotel?`<tr><td>Hôtel (${S.hotel.occ} chambres occupées)</td><td>${fmt(T.hotel)}</td></tr>`:''}<tr><td><b>Total</b></td><td class="pos">${fmt(inc)}</td></tr></table>
-  <h3>Charges</h3><table><tr><td>🛠️ Entretien, frais fixes et frais par visiteur</td><td>${fmt(T.upkeep)}</td></tr><tr><td>👷 Salaires</td><td>${fmt(T.wages)}</td></tr><tr><td>📣 Publicité</td><td>${fmt(T.marketing)}</td></tr>${T.ingr?`<tr><td>Ingrédients des stands</td><td>${fmt(T.ingr)}</td></tr>`:''}${T.hotelCost?`<tr><td>Frais de l’hôtel</td><td>${fmt(T.hotelCost)}</td></tr>`:''}${T.rd?`<tr><td>🔬 Recherche</td><td>${fmt(T.rd)}</td></tr>`:''}<tr><td>🏦 Intérêts</td><td>${fmt(T.interest)}</td></tr><tr><td><b>Total</b></td><td class="negt">${fmt(exp)}</td></tr></table>
+  <h3>Recettes</h3><table><tr><td>🎟️ Entrées</td><td>${fmt(T.entry)}</td></tr><tr><td>🍔 Boutiques</td><td>${fmt(T.shops)}</td></tr>${T.rides?`<tr><td>Coupe-file</td><td>${fmt(T.rides)}</td></tr>`:''}${T.parking?`<tr><td>Parking</td><td>${fmt(T.parking)}</td></tr>`:''}${T.pass?`<tr><td>Pass annuels vendus</td><td>${fmt(T.pass)}</td></tr>`:''}${T.hotel?`<tr><td>Hôtel (${S.hotel.occ} chambres occupées)</td><td>${fmt(T.hotel)}</td></tr>`:''}<tr><td><b>Total</b></td><td class="pos">${fmt(inc)}</td></tr></table>
+  <h3>Charges</h3><table><tr><td>🛠️ Entretien, frais fixes et frais par visiteur</td><td>${fmt(T.upkeep)}</td></tr><tr><td>👷 Salaires</td><td>${fmt(T.wages)}</td></tr><tr><td>📣 Publicité</td><td>${fmt(T.marketing)}</td></tr>${T.access?`<tr><td>Parking, navettes et partenariat</td><td>${fmt(T.access)}</td></tr>`:''}${T.ingr?`<tr><td>Ingrédients des stands</td><td>${fmt(T.ingr)}</td></tr>`:''}${T.hotelCost?`<tr><td>Frais de l’hôtel</td><td>${fmt(T.hotelCost)}</td></tr>`:''}${T.rd?`<tr><td>🔬 Recherche</td><td>${fmt(T.rd)}</td></tr>`:''}<tr><td>🏦 Intérêts</td><td>${fmt(T.interest)}</td></tr><tr><td><b>Total</b></td><td class="negt">${fmt(exp)}</td></tr></table>
   <div class="kpis" style="margin-top:14px"><div class="kpi"><div class="k">Résultat d’exploitation</div><div class="v ${res>=0?'pos':'negt'}">${fmt(res)}</div></div>
-  <div class="kpi"><div class="k">Investissements</div><div class="v">${fmt(T.build)}</div></div><div class="kpi"><div class="k">Demain : ${S.day%YEAR_LEN===0?'❄️ fermeture hivernale':DOW[dowOf(S.day+1)]+(isHoliday(S.day+1)?' 🏖️':'')}</div><div class="v">${F.e} ${F.n}</div></div></div>
+  <div class="kpi"><div class="k">Investissements</div><div class="v">${fmt(T.build)}</div></div><div class="kpi"><div class="k">Demain : ${S.day%YEAR_LEN===0&&!S.winter?'fin de l’année':S.winter&&S.winterDay>=WL?'retour du printemps':DOW[dowOf(S.day+1)]+(isHoliday(S.day+1)?' 🏖️':'')}</div><div class="v">${F.e} ${F.n}</div></div></div>
   <p class="sub">${S.money<0?'⚠️ Trésorerie négative : tu ne peux plus investir. Ajuste tes prix, réduis le personnel ou emprunte.':'Trésorerie : <b>'+fmt(S.money)+'</b>'}</p>
   <div class="sheetacts"><button class="btn" data-a="next">☀️ Jour suivant</button></div>`;
 }
@@ -1226,7 +1372,7 @@ function welcomeHTML(){
     <button class="ci" data-a="campaign"><b>Campagne</b><span class="d">${MISSIONS.length} missions scénarisées avec un objectif et un délai : sauvetage, duel, empire… (${Math.min(campDone(),MISSIONS.length)}/${MISSIONS.length} réussies)</span></button></div>`;
   if(st===1)return`<h2>${wiz.expand?'🏢 Ouvre un nouveau parc':'🎡 Crée ton parc d’attractions'}</h2><div class="sub">Étape 1 · Nom et thème${wiz.expand?` · mise de fonds ${fmt(EXPAND_COST)} prélevée sur ${S.name}`:''}</div>${bar}
     <h3>Nom du parc</h3><input class="txt" id="wzName" maxlength="28" placeholder="Ex. : Vincentland" value="${(wiz.name||'').replace(/"/g,'&quot;')}">
-    <h3>Thème</h3><div class="cat">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${wiz.theme===k?' sel':''}" data-a="wz" data-k="theme" data-v="${k}"><span class="e">${t.e}</span><b>${t.n}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base||CATALOG[r].name).join(', ')}</span></button>`).join('')}</div>
+    <h3>Thème</h3><div class="cat">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${wiz.theme===k?' sel':''}" data-a="wz" data-k="theme" data-v="${k}"><span class="e">${ico('th_'+k)}</span><b>${t.n}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base||CATALOG[r].name).join(', ')}</span></button>`).join('')}</div>
     ${wiz.expand?'':`<h3>Tutoriel</h3><div class="acts"><button class="btn sm ${wiz.tut?'teal':'sec'}" data-a="wzTut" data-v="1">Avec tutoriel guidé</button><button class="btn sm ${wiz.tut?'sec':'teal'}" data-a="wzTut" data-v="0">Sans tutoriel</button></div>`}
     <div class="sheetacts">${wiz.expand?'':'<button class="btn sec" data-a="wzStep" data-v="0">← Retour</button>'}<button class="btn teal" data-a="wzStep" data-v="2">Suivant →</button></div>`;
   if(st===2)return`<h2>📍 Où construire ton parc ?</h2><div class="sub">Étape 2 · Emplacement</div>${bar}
@@ -1324,9 +1470,9 @@ setInterval(()=>{if(!S)return;header();if(!holding&&!modal)render();tutUI();},90
 // ====================== SAUVEGARDE ======================
 let PARKS=[],CUR=0,GROUP={stock:null};
 const EXPAND_COST=40000;
-function strip(x){return{...x,offer:null,b:x.b.map(b=>({id:b.id,type:b.type,lvl:b.lvl,price:b.price,visitors:b.visitors,revenue:b.revenue,cfg:b.cfg,cname:b.cname,parcel:b.parcel,rel:b.rel,broken:b.broken,repairT:b.repairT,age:b.age||0,yRev:b.yRev??null,yVis:b.yVis??null}))};}
+function strip(x){return{...x,offer:null,b:x.b.map(b=>({id:b.id,type:b.type,lvl:b.lvl,price:b.price,visitors:b.visitors,revenue:b.revenue,cfg:b.cfg,cname:b.cname,parcel:b.parcel,rel:b.rel,broken:b.broken,repairT:b.repairT,yrVis:b.yrVis||0,yrRev:b.yrRev||0,yrDays:b.yrDays||0,q:b.q,age:b.age||0,yRev:b.yRev??null,yVis:b.yVis??null}))};}
 function save(){try{PARKS[CUR]=strip(S);localStorage.setItem(SAVE_KEY,JSON.stringify({v:4,cur:CUR,parks:PARKS,group:GROUP}));}catch(_){}}
-function hydrate(o){S=o;S.pass=S.pass||{price:0,holders:0,sold:0};S.hotel=S.hotel||null;S.rd=S.rd||{level:0,cur:null,prog:0,done:[]};S.fpPrice=S.fpPrice||10;if(!S.staff){S.staff=[];for(const[k,r]of[['janitors','janitor'],['mechanics','mechanic'],['animators','animator']])for(let i=0;i<(S[k]||0);i++){const m={id:S.nid++,role:r,lvl:1,name:pick(FIRST)+' '+String.fromCharCode(65+(Math.random()*26|0))+'.',morale:70};m.salary=fairWage(m);S.staff.push(m);}}applyTheme();if(!S.cands||!S.cands.length)S.cands=[makeCand(),makeCand(),makeCand(),makeCand()];S.reviews=S.reviews||[];S.diff=S.diff||'normal';S.rival=S.rival||{name:'WonderLand',rating:58};S.offer=null;S.privateAt=null;S.time=OPEN;S.today=newDay();S.series=[];S.b.forEach(b=>{rtInit(b);b.todayVis=0;b.todayRev=0;});guests=[];}
+function hydrate(o){S=o;S.access=S.access||{parking:false,parkPrice:3,shuttle:false,rail:false};S.pass=S.pass||{price:0,holders:0,sold:0};S.hotel=S.hotel||null;S.rd=S.rd||{level:0,cur:null,prog:0,done:[]};S.fpPrice=S.fpPrice||10;if(!S.staff){S.staff=[];for(const[k,r]of[['janitors','janitor'],['mechanics','mechanic'],['animators','animator']])for(let i=0;i<(S[k]||0);i++){const m={id:S.nid++,role:r,lvl:1,name:pick(FIRST)+' '+String.fromCharCode(65+(Math.random()*26|0))+'.',morale:70};m.salary=fairWage(m);S.staff.push(m);}}applyTheme();if(!S.cands||!S.cands.length)S.cands=[makeCand(),makeCand(),makeCand(),makeCand()];S.reviews=S.reviews||[];S.diff=S.diff||'normal';S.rival=S.rival||{name:'WonderLand',rating:58};S.offer=null;S.privateAt=null;S.time=OPEN;S.today=newDay();S.series=[];S.b.forEach(b=>{rtInit(b);b.todayVis=0;b.todayRev=0;});guests=[];}
 function load(){try{let raw=localStorage.getItem(SAVE_KEY),data=null;
   if(raw)data=JSON.parse(raw);else{const old=localStorage.getItem('parcmania_v3');if(old)data={cur:0,parks:[JSON.parse(old)]};}
   if(!data||!Array.isArray(data.parks)||!data.parks.length)return false;PARKS=data.parks;GROUP=data.group||{stock:null};CUR=clamp(data.cur||0,0,PARKS.length-1);hydrate(PARKS[CUR]);return true;}catch(_){return false;}}
