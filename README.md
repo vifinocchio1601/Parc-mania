@@ -12,6 +12,13 @@ Jeu de gestion de parc d'attractions en mode sombre, pensé pour iPad (fonctionn
 - Attire trois types de visiteurs (familles, ados, seniors) aux goûts différents
 - Compose avec la météo, les week-ends, les vacances scolaires et le concurrent WonderLand
 - Accepte ou refuse des propositions : soirées privées, tournages, sponsors, influenceurs, concerts
+- Vis des saisons (printemps, été, automne), une fermeture hivernale et un classement annuel des parcs
+- Conçois tes propres montagnes russes (longueur, hauteur, loopings)
+- Investis dans la recherche (coupe-file, maintenance prédictive, réalité virtuelle…)
+- Gère une équipe nominative : embauche, formation, salaires, moral et grèves
+- Organise des événements : Pâques, feu d’artifice, Halloween, festival rock
+- Bâtis un empire de plusieurs parcs dans différentes villes
+- Musique d’ambiance et effets sonores selon le thème
 - Suis les conseils du conseiller, lis les avis des visiteurs et remplis 11 objectifs
 
 Tout tient dans un seul fichier `index.html`, sans dépendance. La partie est sauvegardée dans le navigateur chaque soir de jeu.

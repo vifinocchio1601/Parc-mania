@@ -123,6 +123,7 @@ input.txt:focus{border-color:var(--teal)}
   <div class="pill" id="hGuests"></div>
   <div class="pill" id="hRating"></div>
   <div class="pill" id="hTime"></div>
+  <button class="pill" id="sndBtn" style="border:0;color:#fff;cursor:pointer">🎵</button>
   <div class="seg" id="speed"><button data-s="0">⏸</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button></div>
 </div>
 <div id="nav"></div>
@@ -133,7 +134,7 @@ input.txt:focus{border-color:var(--teal)}
 <script>
 "use strict";
 // ====================== CATALOGUE ======================
-const OPEN=540, CLOSE=1260, MS_PER_MIN=200, SAVE_KEY='parcmania_v3';
+const OPEN=540, CLOSE=1260, MS_PER_MIN=200, SAVE_KEY='parcmania_v4';
 const CATALOG={
   teacups:{t:'ride',name:'Tasses folles',e:'☕',cost:2500,plots:2,exc:2.5,cap:12,dur:5,price:2,upkeep:40,d:'Petite attraction familiale, idéale pour démarrer.'},
   carousel:{t:'ride',name:'Carrousel',e:'🎠',cost:3500,plots:2,exc:3,cap:14,dur:6,price:3,upkeep:50,d:'Un classique que petits et grands adorent.'},
@@ -175,6 +176,7 @@ const WEATHER={
 };
 const THOUGHTS={
   great:{e:'😍',t:'Ce parc est génial !',good:1},
+  crowd:{e:'😵',t:'Il y a beaucoup trop de monde ici'},
   pretty:{e:'🌸',t:'Quel joli parc !',good:1},
   cheap:{e:'👍',t:'L’entrée n’est vraiment pas chère',good:1},
   fun:{e:'🤩',t:'Cette attraction était incroyable !',good:1},
@@ -191,6 +193,7 @@ const THOUGHTS={
   bored:{e:'🥱',t:'Il n’y a pas assez d’attractions'},
   wet:{e:'💧',t:'Je suis trempé, il me faut un parapluie'},
   bad:{e:'😠',t:'Je rentre, ce parc est nul'},
+  sick:{e:'🤮',t:'Ce manège m’a rendu malade'},
 };
 const GOALS=[
   {t:'Construis ta première attraction',p:()=>rides().length/1,r:1000},
@@ -204,6 +207,7 @@ const GOALS=[
   {get t(){return S&&S.theme!=='classic'?`Construis ${lc(CATALOG.coaster.name)}`:'Construis les Montagnes russes';},p:()=>S.b.some(b=>b.type==='coaster')?1:0,r:10000},
   {t:'Encaisse 5 000 € de recettes en une journée',p:()=>Math.max(S.bestDay||0,dayIncome())/5000,r:12000},
   {t:'Parc légendaire : 250 visiteurs en même temps et 80 % de note',p:()=>Math.min(guests.length/250,S.rating/80),r:25000},
+  {t:'Bâtis un empire : possède 3 parcs',p:()=>PARKS.length/3,r:50000},
 ];
 
 const SEGS={
@@ -224,7 +228,7 @@ const OFFERS=[
   {id:'private',e:'🏢',t:'Soirée d’entreprise',make:()=>({co:pick(['Proximus','Delhaize','Spa Monopole','Ethias','Cockerill']),amt:Math.round(3000+S.rating*40)}),
    d:o=>`La société ${o.co} veut privatiser le parc ce soir de 19h à 21h. Tous les visiteurs devront partir à 19h.`,gain:o=>`+${fmt(o.amt)} ce soir`,
    accept:o=>{S.privateAt=19*60;S.privateAmt=o.amt;}},
-  {id:'film',e:'🎬',t:'Tournage publicitaire',make:()=>{const r=rides();if(!r.length)return null;const b=r.slice().sort((a,c)=>exc(c)-exc(a))[0];return{bid:b.id,name:C(b).name,amt:Math.round(1500+C(b).cost*.12)};},
+  {id:'film',e:'🎬',t:'Tournage publicitaire',make:()=>{const r=rides();if(!r.length)return null;const b=r.slice().sort((a,c)=>exc(c)-exc(a))[0];return{bid:b.id,name:bname(b),amt:Math.round(1500+C(b).cost*.12)};},
    d:o=>`Une marque veut tourner une pub sur ${o.name}. L’attraction sera fermée au public toute la journée.`,gain:o=>`+${fmt(o.amt)} tout de suite`,
    accept:o=>{S.money+=o.amt;S.today.events+=o.amt;const b=S.b.find(x=>x.id===o.bid);if(b)b.closed=true;}},
   {id:'sponsor',e:'🪧',t:'Contrat de sponsoring',make:()=>({amt:Math.round(2500+usedPlots()*150)}),
@@ -286,19 +290,68 @@ const LOC=()=>LOCS[S.loc||'liege'];
 function parcelDef(i,loc){const L=LOCS[loc||S.loc],q=L.parcels[i],t=TRAITS[q[1]];return{i,name:q[0],trait:q[1],size:q[2],price:Math.round(q[2]*1300*L.land*t.price/100)*100};}
 const owned=()=>S.parcels.map(i=>parcelDef(i));
 const capacity=()=>owned().reduce((a,p)=>a+p.size,0);
-const usedIn=i=>S.b.filter(b=>b.parcel===i).reduce((a,b)=>a+C(b).plots,0);
+const usedIn=i=>S.b.filter(b=>b.parcel===i).reduce((a,b)=>a+P(b).plots,0);
 const freeIn=i=>parcelDef(i).size-usedIn(i);
 const traitOf=b=>TRAITS[parcelDef(b.parcel).trait];
 const lc=t=>t.startsWith('L’')?'l’'+t.slice(2):t.charAt(0).toLowerCase()+t.slice(1);
 function applyTheme(){const T=THEMES[S.theme||'classic'];for(const k in CATALOG){const it=CATALOG[k];it.base=it.base||it.name;it.name=(T.names&&T.names[k])||it.base;}DECOR.themed={...T.decor};}
 const DOW=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'],DOWM=[.8,.8,1.1,.85,1,1.5,1.4];
-const dowOf=d=>(d-1)%7, isHoliday=d=>Math.floor((d-1)/7)%4===3;
+const dowOf=d=>(d-1)%7;
+const SEASON_LEN=14,YEAR_LEN=42;
+const SEASONS=[{n:'Printemps',e:'🌷',arr:.85,w:[.34,.38,.22,.06]},{n:'Été',e:'☀️',arr:1.35,w:[.5,.26,.1,.14]},{n:'Automne',e:'🍂',arr:.8,w:[.2,.42,.34,.04]}];
+const seasonOf=d=>Math.floor(((d-1)%YEAR_LEN)/SEASON_LEN),yearOf=d=>Math.floor((d-1)/YEAR_LEN)+1,dayIn=d=>((d-1)%SEASON_LEN)+1;
+const isHoliday=d=>{const se=seasonOf(d),k=dayIn(d);return se===1||(se===0&&k>=6&&k<=12)||(se===2&&k>=8&&k<=12);};
+const holidayName=d=>{const se=seasonOf(d);return se===1?'Grandes vacances':se===0?'Vacances de Pâques':'Congé de Toussaint';};
+const SPECIALS={
+  easter:{n:'Chasse aux œufs de Pâques',e:'🐣',season:0,cost:2500,arr:1.4,seg:{family:1.8},happy:5,d:'Les familles accourent pour chercher les œufs.'},
+  fireworks:{n:'Grand feu d’artifice',e:'🎆',season:1,cost:4500,arr:1.55,seg:{},happy:8,d:'Un spectacle qui attire tout le monde.'},
+  halloween:{n:'Nuit d’Halloween',e:'🎃',season:2,cost:6000,arr:1.9,seg:{teen:1.5},happy:6,d:'L’événement de l’année pour les ados (encore plus fort dans un parc Horreur).'},
+  rock:{n:'Festival rock',e:'🎸',season:null,cost:5000,arr:1.6,seg:{teen:2},happy:4,d:'Les ados débarquent en masse.'},
+  seniors:{n:'Journée rétro des seniors',e:'🎻',season:null,cost:2000,arr:1.25,seg:{senior:2},happy:4,d:'Bal musette et tarifs doux : les seniors adorent.'},
+};
+const ROLES={janitor:{n:'Agent d’entretien',p:'Agents d’entretien',e:'🧹',base:70,d:'Garde le parc propre'},mechanic:{n:'Mécanicien',p:'Mécaniciens',e:'🔧',base:100,d:'Répare et entretient les attractions'},animator:{n:'Animateur',p:'Animateurs',e:'🤹',base:80,d:'Met l’ambiance, rend les visiteurs heureux'}};
+const FIRST=['Kevin','Nadia','Luca','Sofia','Mehdi','Julie','Arnaud','Chloé','Yasmine','Bruno','Elena','Thibault','Inès','Rachid','Camille','Pieter','Sarah','Dylan','Fatima','Marco','Lotte','Jonas','Aïcha','Hugo'];
+const fairWage=m=>Math.round(ROLES[m.role].base*(1+.3*(m.lvl-1)));
+function power(role){if(S.strike)return 0;let p=0;for(const m of S.staff)if(m.role===role)p+=(.7+.3*m.lvl)*(m.morale<30?.6:1);return p;}
+const J=()=>power('janitor'),M=()=>power('mechanic'),A=()=>power('animator');
+const staffWages=()=>S.staff.reduce((a,m)=>a+m.salary,0);
+function makeCand(){const roles=Object.keys(ROLES),role=pick(roles),r=Math.random(),lvl=r<.6?1:r<.92?2:3;const m={id:S.nid++,role,lvl,name:pick(FIRST)+' '+String.fromCharCode(65+(Math.random()*26|0))+'.',morale:70};m.salary=Math.round(fairWage(m)*rnd(.95,1.2));return m;}
+function staffDay(){
+  S.strike=false;let quit=[];
+  for(const m of S.staff){const fair=fairWage(m);let d=(m.salary/fair-1)*40-.5;
+    if(m.role==='janitor'){const n=S.staff.filter(x=>x.role==='janitor').length;if(S.today.guests/Math.max(1,n)>250)d-=6;}
+    if(m.role==='mechanic'){const br=S.history.length?0:0;d+=0;}
+    if(S.rating>=65)d+=1.5;m.morale=clamp(Math.round(m.morale+d),0,100);
+    if(m.morale<20&&Math.random()<.3)quit.push(m);}
+  for(const m of quit){S.staff=S.staff.filter(x=>x!==m);news(`🚪 ${ROLES[m.role].e} ${m.name} démissionne : moral au plus bas.`);toast(`🚪 ${m.name} démissionne`);}
+  const avgM=S.staff.length?S.staff.reduce((a,m)=>a+m.morale,0)/S.staff.length:100;
+  if(S.staff.length>=3&&avgM<35&&Math.random()<.3){S.strike=true;news('✊ Grève du personnel aujourd’hui : personne ne travaille ! Augmente les salaires pour calmer la situation.');toast('✊ Grève du personnel !');}
+  S.cands=[makeCand(),makeCand(),makeCand(),makeCand()];
+}
+const TECHS={
+  fastpass:{n:'Billets coupe-file',e:'🎫',pts:12,d:'Vends un coupe-file en plus de l’entrée : ses détenteurs passent devant tout le monde.'},
+  queues:{n:'Files d’attente animées',e:'📺',pts:10,d:'Écrans et jeux dans les files : l’attente agace deux fois moins.'},
+  predictive:{n:'Maintenance prédictive',e:'🛠️',pts:14,d:'Capteurs sur les attractions : −40 % de pannes.'},
+  kitchen:{n:'Cuisine express',e:'⚡',pts:10,d:'Boutiques et stands servent 30 % plus vite.'},
+  social:{n:'Réseaux sociaux',e:'📱',pts:12,d:'Campagnes de pub 50 % plus efficaces.'},
+  green:{n:'Énergie verte',e:'☀️',pts:18,d:'Panneaux solaires : entretien des installations −15 %.'},
+  extreme:{n:'Ingénierie extrême',e:'🏗️',pts:20,d:'Montagnes russes sur mesure jusqu’à 120 m et 7 loopings.'},
+  vr:{n:'Réalité virtuelle',e:'🥽',pts:25,d:'Casques VR dans les attractions : +10 % de frissons partout.'},
+};
+const RDL=[{n:'Aucun',cost:0,pts:0},{n:'Modeste',cost:200,pts:1.5},{n:'Soutenu',cost:500,pts:4},{n:'Massif',cost:1000,pts:8}];
+const has=t=>!!(S.rd&&S.rd.done.includes(t));
+const P=b=>b.cfg||C(b);
+const bname=b=>b.cname||C(b).name;
+function coasterStats(c){const e=5+c.height/20+c.loops*1.1+(c.len-1)*.6;
+  return{exc:Math.round(e*10)/10,cost:Math.round((10000+c.height*120+c.loops*1800+c.len*2500)/100)*100,plots:2+c.len,cap:12+c.len*6,dur:3+c.len,upkeep:Math.round(140+c.height*2+c.loops*35),len:c.len,height:c.height,loops:c.loops};}
+const intensity=e=>e<7?['Douce','ok']:e<10?['Intense','wait']:e<13?['Très intense','wait']:['Extrême','ko'];
+const SP=()=>S.special?SPECIALS[S.special]:null;
 const ISSUES={expensive:'les attractions soient si chères',shopExp:'les boutiques soient si chères',entryHigh:'l’entrée soit hors de prix',hungry:'on ne trouve rien à manger',
   thirsty:'il n’y ait rien à boire',toilet:'on ne trouve pas de toilettes',dirty:'le parc soit si sale',queue:'les files soient interminables',broken:'tant d’attractions soient en panne',
-  nocash:'tout coûte si cher',bored:'il n’y ait pas grand-chose à faire',wet:'on n’ait pas pu acheter de parapluie sous la pluie',bad:'on se soit ennuyés'};
+  nocash:'tout coûte si cher',bored:'il n’y ait pas grand-chose à faire',wet:'on n’ait pas pu acheter de parapluie sous la pluie',bad:'on se soit ennuyés',crowd:'il y ait autant de monde',sick:'un manège m’ait rendu malade'};
 const ISSUES_NEG={expensive:'les attractions sont trop chères',shopExp:'les prix des boutiques sont abusés',entryHigh:'l’entrée est hors de prix',hungry:'impossible de trouver à manger',
   thirsty:'rien à boire',toilet:'pas de toilettes',dirty:'le parc est sale',queue:'des files d’attente interminables',broken:'trop d’attractions en panne',
-  nocash:'tout coûte trop cher',bored:'pas grand-chose à faire',wet:'trempés, et aucun parapluie à acheter',bad:'on s’est ennuyés'};
+  nocash:'tout coûte trop cher',bored:'pas grand-chose à faire',wet:'trempés, et aucun parapluie à acheter',bad:'on s’est ennuyés',crowd:'beaucoup trop de monde, on ne pouvait rien faire',sick:'un manège bien trop violent, j’ai été malade'};
 
 // ====================== OUTILS ======================
 const $=s=>document.querySelector(s);
@@ -311,16 +364,16 @@ const C=b=>CATALOG[b.type];
 const rides=()=>S.b.filter(b=>C(b).t==='ride');
 const shops=()=>S.b.filter(b=>C(b).t==='shop');
 const hasKind=k=>S.b.some(b=>C(b).kind===k)?1:0;
-const usedPlots=()=>S.b.reduce((s,b)=>s+C(b).plots,0);
+const usedPlots=()=>S.b.reduce((s,b)=>s+P(b).plots,0);
 const dayIncome=()=>S.today.entry+S.today.rides+S.today.shops;
 const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
-const pickWeather=()=>{const w=S&&S.loc?LOC().w:[.4,.35,.19,.06],r=Math.random();return r<w[0]?'sun':r<w[0]+w[1]?'cloud':r<w[0]+w[1]+w[2]?'rain':'heat';};
-const exc=b=>C(b).exc*(1+.15*(b.lvl-1))*(THEMES[S.theme||'classic'].bonus.includes(b.type)?1.15:1)*(b.parcel!=null&&traitOf(b).bonus&&traitOf(b).bonus[b.type]||1);
-const cap=b=>Math.round(C(b).cap*(1+.35*(b.lvl-1)));
-const rate=b=>C(b).rate*(1+.5*(b.lvl-1))*(b.parcel!=null&&traitOf(b).shop||1);
-const upkeep=b=>Math.round(C(b).upkeep*2*D().up*(1+.4*(b.lvl-1))*(b.parcel!=null&&traitOf(b).upkeep||1));
+const pickWeather=()=>{const lw=S&&S.loc?LOC().w:[.4,.35,.19,.06],sw=SEASONS[S?seasonOf(S.day+1):0].w,w=lw.map((x,i)=>(x+sw[i])/2),r=Math.random();return r<w[0]?'sun':r<w[0]+w[1]?'cloud':r<w[0]+w[1]+w[2]?'rain':'heat';};
+const exc=b=>P(b).exc*(1+.15*(b.lvl-1))*(has('vr')?1.1:1)*(THEMES[S.theme||'classic'].bonus.includes(b.type)?1.15:1)*(b.parcel!=null&&traitOf(b).bonus&&traitOf(b).bonus[b.type]||1);
+const cap=b=>Math.round(P(b).cap*(1+.35*(b.lvl-1)));
+const rate=b=>C(b).rate*(1+.5*(b.lvl-1))*(has('kitchen')?1.3:1)*(b.parcel!=null&&traitOf(b).shop||1);
+const upkeep=b=>Math.round(P(b).upkeep*2*D().up*(has('green')?.85:1)*(1+.4*(b.lvl-1))*(b.parcel!=null&&traitOf(b).upkeep||1));
 const fixedCosts=()=>200+15*usedPlots();
-const upCost=b=>Math.round(C(b).cost*.6*b.lvl);
+const upCost=b=>Math.round(P(b).cost*.6*b.lvl);
 const landCost=()=>Math.round(3000*Math.pow(1+S.landBuys,1.4));
 const fairRide=b=>Math.round(exc(b)*1.1+1);
 
@@ -329,11 +382,11 @@ let S=null, guests=[], speed=1, acc=0, last=0, modal=false, tab='home', holding=
 function newDay(){return{entry:0,rides:0,shops:0,guests:0,build:0,upkeep:0,wages:0,marketing:0,interest:0,events:0};}
 function newGame(cfg){
   cfg=cfg||{};const lk=cfg.loc||'liege',L=LOCS[lk],dk=cfg.diff||'normal';
-  S={name:cfg.name||'Mon parc',theme:cfg.theme||'classic',loc:lk,parcels:[],diff:dk,rival:{...L.rival},money:DIFFS[dk].money,day:1,time:OPEN,entry:15,bins:0,janitors:0,mechanics:0,animators:0,
+  S={name:cfg.name||'Mon parc',theme:cfg.theme||'classic',loc:lk,parcels:[],diff:dk,rival:{...L.rival},money:cfg.money??DIFFS[dk].money,day:1,time:OPEN,entry:15,bins:0,staff:[],cands:[],rd:{level:0,cur:null,prog:0,done:[]},fpPrice:10,
     decor:{},campaigns:[],loan:0,dirt:0,totalGuests:0,rating:50,rb:{hap:65,beauty:0,variety:0,clean:100},
     b:[],nid:1,goal:0,today:newDay(),history:[],thoughts:{},news:[],bestDay:0,series:[],
     weather:'sun',forecast:'sun',event:null,press:false,seenWelcome:false,reviews:[]};
-  S.weather=pickWeather();S.forecast=pickWeather();applyTheme();guests=[];
+  S.weather=pickWeather();S.forecast=pickWeather();applyTheme();guests=[];S.cands=[makeCand(),makeCand(),makeCand(),makeCand()];
   const fp=parcelDef(cfg.parcel!=null?cfg.parcel:1);S.parcels.push(fp.i);S.money-=fp.price;S.today.build+=fp.price;
   news(`🎉 ${S.name} (${THEMES[S.theme].e} ${THEMES[S.theme].n}) s’installe à ${L.n}, sur le terrain « ${fp.name} » (${fp.size} emplacements).`);
   news(`🏰 Le concurrent local s’appelle ${S.rival.name} (note ${S.rival.rating} %).`);
@@ -347,22 +400,24 @@ function beautyScore(){let p=0;for(const q of owned())p+=TRAITS[q.trait].beauty|
 function cleanScore(){return 100*Math.exp(-S.dirt/(40+guests.length*.2));}
 function appeal(){let a=0;for(const b of rides())a+=exc(b)*(b.broken||b.closed?.5:1);return a;}
 function compF(){return clamp(1+(S.rating-S.rival.rating)/80,.65,1.35);}
-function fairEntry(){return Math.round(8+Math.min(70,appeal()*1.5));}
-function marketingBoost(){let m=0;for(const c of S.campaigns)m=Math.max(m,CAMPAIGNS[c.k].boost);return m;}
+function fairEntry(){return Math.round(8+Math.min(50,appeal()*1.2));}
+function crowd(){let c=30;for(const b of S.b){const it=C(b);c+=it.t==='ride'?cap(b)*2:it.kind==='toilet'?6:8;}return guests.length/c;}
+function marketingBoost(){let m=0;for(const c of S.campaigns)m=Math.max(m,CAMPAIGNS[c.k].boost);return m*(has('social')?1.5:1);}
 function arrivalRate(){
   const ap=appeal();if(ap===0||guests.length>=700||S.time>CLOSE-90)return 0;
   const fair=fairEntry();
   const pf=S.entry<=fair?1+(fair-S.entry)/fair*.3:Math.max(0,1-(S.entry-fair)/fair*1.4);
   const tf=clamp(1-((S.time-13*60)/(6*60))**2*.6,.3,1);
-  return Math.pow(Math.min(ap,80)/80,.85)*2.6*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*compF()*(S.theme==='horror'&&S.time>=17*60?1.4:1)*(S.rivalPromo?.85:1)*LOC().pop*(dowOf(S.day)>=5||isHoliday(S.day)?LOC().tour:1)*(1+Math.max(0,...owned().map(q=>TRAITS[q.trait].arr||0)))*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
+  return Math.pow(Math.min(ap,80)/80,.85)*1.7*Math.min(1,1/Math.max(.01,S._crowd||0))*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*SEASONS[seasonOf(S.day)].arr*(SP()?SP().arr*(S.special==='halloween'&&S.theme==='horror'?1.3:1):1)*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*compF()*(S.theme==='horror'&&S.time>=17*60?1.4:1)*(S.rivalPromo?.85:1)*LOC().pop*(dowOf(S.day)>=5||isHoliday(S.day)?LOC().tour:1)*(1+Math.max(0,...owned().map(q=>TRAITS[q.trait].arr||0)))*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
 }
-function segWeights(){const w={};for(const k in SEGS){let a=1;for(const b of rides())if(!b.broken)a+=exc(b)*aff(k,exc(b));w[k]=SEGS[k].share*a*THEMES[S.theme||'classic'].seg[k]*LOC().seg[k]*(k==='family'&&isHoliday(S.day)?1.5:1)*(k==='teen'&&dowOf(S.day)===2?1.4:1);}return w;}
+function segWeights(){const w={};for(const k in SEGS){let a=1;for(const b of rides())if(!b.broken)a+=exc(b)*aff(k,exc(b));w[k]=SEGS[k].share*a*(SP()&&SP().seg[k]||1)*THEMES[S.theme||'classic'].seg[k]*LOC().seg[k]*(k==='family'&&isHoliday(S.day)?1.5:1)*(k==='teen'&&dowOf(S.day)===2?1.4:1);}return w;}
 function spawn(){
   const w=segWeights();let tot=0;for(const k in w)tot+=w[k];let r=Math.random()*tot,seg='family';for(const k in w){r-=w[k];if(r<=0){seg=k;break;}}
   const cash=rnd(...SEGS[seg].cash)*D().cash;
   const g={st:'walk',t:rnd(2,5),target:null,leaving:false,hunger:rnd(0,35),thirst:rnd(0,35),bladder:rnd(0,30),fun:rnd(10,40),
-    seg,happy:rnd(68,85),cash,stay:rnd(150,420),visited:new Set(),souv:false,umb:false,qT:0};
+    seg,happy:rnd(68,85)+(SP()?SP().happy:0),cash,stay:rnd(150,420),visited:new Set(),souv:false,umb:false,qT:0};
   S.money+=S.entry;S.today.entry+=S.entry;S.today.guests++;S.totalGuests++;
+  if(has('fastpass')&&S.fpPrice>0&&Math.random()<clamp(.35*(12/S.fpPrice),0,.6)*(seg==='teen'?1.2:seg==='senior'?.5:1)){g.fp=true;S.money+=S.fpPrice;S.today.rides+=S.fpPrice;}
   const fair=fairEntry();
   if(S.entry>fair*1.3){g.happy-=14;thought('entryHigh',g);}else if(S.entry<=fair*.75&&Math.random()<.3)thought('cheap',g);
   guests.push(g);
@@ -410,15 +465,15 @@ function arrive(g){
   if(it.t==='ride'){
     if(b.closed)return decide(g);
     if(b.broken){thought('broken',g);g.happy-=4;return decide(g);}
-    if(b.queue.length>cap(b)*3){thought('queue',g);g.happy-=3;g.visited.add(b.id);return decide(g);}
-    b.queue.push(g);g.st='queue';g.qT=0;g.at=b.id;return;
+    if(!g.fp&&b.queue.length>cap(b)*3){thought('queue',g);g.happy-=3;g.visited.add(b.id);return decide(g);}
+    if(g.fp)b.queue.unshift(g);else b.queue.push(g);g.st='queue';g.qT=0;g.at=b.id;return;
   }
   if(b.price>it.value*1.8&&Math.random()<.8){thought('shopExp',g);g.happy-=3;return decide(g);}
   if(b.price>g.cash){thought('nocash',g);return decide(g);}
   if(b.queue.length>rate(b)*10){thought('queue',g);g.happy-=2;return decide(g);}
   b.queue.push(g);g.st='queue';g.qT=0;g.at=b.id;
 }
-function pay(g,b,k){if(!b.price)return;g.cash-=b.price;S.money+=b.price;S.today[k]+=b.price;b.revenue+=b.price;b.todayRev=(b.todayRev||0)+b.price;}
+function pay(g,b,k){if(!b.price)return;sfx.cash();g.cash-=b.price;S.money+=b.price;S.today[k]+=b.price;b.revenue+=b.price;b.todayRev=(b.todayRev||0)+b.price;}
 function serve(g,b){
   const it=C(b);pay(g,b,'shops');b.visitors++;b.todayVis=(b.todayVis||0)+1;
   const litter=()=>{const cover=Math.min(.95,S.bins*35/Math.max(guests.length,20));S.dirt+=(1-cover)*.8;};
@@ -450,10 +505,10 @@ function guestTick(g){
   g.bladder=Math.min(100,g.bladder+.035);g.fun=Math.max(0,g.fun-.14);
   let d=0;
   if(g.hunger>75)d-=.12;if(g.thirst>75)d-=.12;if(g.bladder>85)d-=.25;if(g.fun<15)d-=.06;
-  if(g.st==='walk'){d+=S.rb.beauty/100*.08*SEGS[g.seg].beauty-.02;if(S.rb.clean<55){d-=.06;if(Math.random()<.01)thought('dirty',g);}
+  if(g.st==='walk'){d+=S.rb.beauty/100*.08*SEGS[g.seg].beauty-.02;const cr=S._crowd||0;if(cr>1){d-=Math.min(.3,(cr-1)*.25);if(Math.random()<.006)thought('crowd',g);}if(S.rb.clean<55){d-=.06;if(Math.random()<.01)thought('dirty',g);}
     if(S.weather==='rain'&&!g.umb){d-=.05;if(Math.random()<.004)thought('wet',g);}}
-  if(S.animators>0)d+=.04*Math.min(1,S.animators*60/Math.max(guests.length,1));
-  if(g.st==='queue'){g.qT++;if(g.qT>20)d-=.12;}
+  if(A()>0)d+=.04*Math.min(1,A()*60/Math.max(guests.length,1));
+  if(g.st==='queue'){g.qT++;if(g.qT>20&&!g.fp)d-=has('queues')?.06:.12;}
   g.happy=clamp(g.happy+d,0,100);g.stay--;
   if(g.happy>85&&Math.random()<.003)thought('great',g);
   else if(S.rb.beauty>60&&Math.random()<.003)thought('pretty',g);
@@ -479,29 +534,29 @@ function tick(){
       b.acc+=rate(b);while(b.acc>=1&&b.queue.length){serve(b.queue.shift(),b);b.acc-=1;}if(!b.queue.length)b.acc=Math.min(b.acc,1);
       continue;
     }
-    if(b.broken){if(S.mechanics>0){b.repairT-=S.mechanics;if(b.repairT<=0){b.broken=false;b.rel=maxRel(b);news(`✅ Réparation terminée : ${it.e} ${it.name}`);}}continue;}
-    if(S.mechanics>0)b.rel=Math.min(maxRel(b),b.rel+.015*S.mechanics);
+    if(b.broken){if(M()>0){b.repairT-=M();if(b.repairT<=0){b.broken=false;b.rel=maxRel(b);news(`✅ Réparation terminée : ${it.e} ${it.name}`);}}continue;}
+    if(M()>0)b.rel=Math.min(maxRel(b),b.rel+.015*M());
     if(b.running){
       if(--b.timer<=0){
         const e=exc(b);
-        for(const r of b.riders){r.fun=Math.min(100,r.fun+e*7+10);r.happy=Math.min(100,r.happy+e*1.2+2);r.visited.add(b.id);if(e>=8&&Math.random()<.15)thought('fun',r);if(!r.bestExc||e>r.bestExc){r.bestExc=e;r.best=S.theme==='classic'?ART[b.type]:lc(it.name);}release(r);}
+        for(const r of b.riders){r.fun=Math.min(100,r.fun+e*7+10);r.happy=Math.min(100,r.happy+e*1.2+2);r.visited.add(b.id);if(P(b).exc>12&&r.seg!=='teen'&&Math.random()<(P(b).exc-12)*.15){r.happy-=12;thought('sick',r);}else if(e>=8&&Math.random()<.15)thought('fun',r);if(!r.bestExc||e>r.bestExc){r.bestExc=e;r.best=S.theme==='classic'?ART[b.type]:lc(it.name);}release(r);}
         b.visitors+=b.riders.length;b.todayVis=(b.todayVis||0)+b.riders.length;b.riders=[];b.running=false;b.wait=0;
       }
     }else if(b.queue.length){
       b.wait++;
       if(b.queue.length>=cap(b)*.5||b.wait>=4){
-        if(Math.random()<(100-b.rel)/600){
+        if(Math.random()<(100-b.rel)/600*(has('predictive')?.6:1)){
           b.broken=true;b.repairT=30;
           for(const g of b.queue){g.happy-=6;thought('broken',g);g.visited.add(b.id);decide(g);}
           b.queue=[];
-          news(`🔧 Panne : ${it.e} ${it.name}${S.mechanics?' — un mécanicien intervient.':' — aucun mécanicien pour réparer !'}`);
-          if(!S.mechanics)toast(`🔧 Panne : ${it.name}`);
-        }else{b.riders=b.queue.splice(0,cap(b));for(const r of b.riders)r.st='ride';b.running=true;b.timer=it.dur;b.rel=Math.max(20,b.rel-.25);}
+          news(`🔧 Panne : ${it.e} ${it.name}${M()?' — un mécanicien intervient.':' — aucun mécanicien pour réparer !'}`);
+          if(!M())toast(`🔧 Panne : ${it.name}`);sfx.bad();
+        }else{b.riders=b.queue.splice(0,cap(b));for(const r of b.riders)r.st='ride';b.running=true;b.timer=P(b).dur;b.rel=Math.max(20,b.rel-.25);}
       }
     }
   }
-  S.dirt=Math.max(0,S.dirt-.6*S.janitors);
-  if(t%5===0)calcRating();
+  S.dirt=Math.max(0,S.dirt-.6*J());
+  if(t%5===0){calcRating();S._crowd=crowd();}
   if(t%15===0)S.series.push(guests.length);
   if(t%60===0)for(const k in S.thoughts)S.thoughts[k]*=.7;
   guests=guests.filter(g=>!g.dead);
@@ -526,30 +581,53 @@ function runEvent(ev){
 }
 function checkGoals(){
   const G=GOALS[S.goal];if(!G)return;
-  if(G.p()>=1){S.money+=G.r;S.today.events+=G.r;S.goal++;news(`🏆 Objectif réussi : ${G.t} (+${fmt(G.r)})`);toast(`🏆 Objectif réussi ! +${fmt(G.r)}`);
+  if(G.p()>=1){sfx.goal();S.money+=G.r;S.today.events+=G.r;S.goal++;news(`🏆 Objectif réussi : ${G.t} (+${fmt(G.r)})`);toast(`🏆 Objectif réussi ! +${fmt(G.r)}`);
     if(S.goal>=GOALS.length)setTimeout(()=>openSheet(winHTML),600);}
 }
 function endDay(){
   for(const b of S.b){for(const g of b.queue.concat(b.riders))g.dead=true;b.queue=[];b.riders=[];b.running=false;}
   guests=[];
-  let up=fixedCosts();for(const b of S.b)up+=upkeep(b);for(const k in S.decor)up+=DECOR[k].upkeep*S.decor[k];
-  const wages=S.janitors*70+S.mechanics*100+S.animators*80,interest=Math.round(S.loan*.005);
-  S.today.upkeep=up;S.today.wages=wages;S.today.interest=interest;S.money-=up+wages+interest;
+  let up=fixedCosts()+Math.round(S.today.guests*1.5);for(const b of S.b)up+=upkeep(b);for(const k in S.decor)up+=DECOR[k].upkeep*S.decor[k];
+  const rdc=RDL[S.rd.level].cost,wages=staffWages(),interest=Math.round(S.loan*.005)+rdc;S.today.rd=rdc;
+  if(rdc&&S.rd.cur){S.rd.prog+=RDL[S.rd.level].pts;const T=TECHS[S.rd.cur];if(S.rd.prog>=T.pts){S.rd.done.push(S.rd.cur);news(`🔬 Recherche terminée : ${T.e} ${T.n} !`);toast(`🔬 Nouvelle technologie : ${T.n}`);S.rd.cur=null;S.rd.prog=0;}}
+  S.today.upkeep=up;S.today.wages=wages;S.today.interest=interest-rdc;S.money-=up+wages+interest;
   S.dirt*=.3;
   const inc=dayIncome();S.bestDay=Math.max(S.bestDay||0,inc);
+  S.year=S.year||{guests:0,inc:0,exp:0};S.year.guests+=S.today.guests;S.year.inc+=inc;S.year.exp+=up+wages+interest+S.today.marketing;
   S.history.push({day:S.day,guests:S.today.guests,inc,exp:up+wages+interest+S.today.marketing,rating:S.rating});
   if(S.history.length>14)S.history.shift();
   if(S.influencer){if(S.rating>=70){S.buzz=3;news(`🤳 ${S.influencer} a adoré ton parc ! Sa vidéo cartonne : affluence en hausse pendant 3 jours.`);}
     else{S.rating=Math.max(0,S.rating-8);news(`🤳 ${S.influencer} a publié une critique sévère : ta note chute de 8 points.`);}S.influencer=null;}
+  for(let i=0;i<PARKS.length;i++){if(i===CUR||!PARKS[i])continue;const q=PARKS[i],hs=(q.history||[]).slice(-5);const avg=hs.length?hs.reduce((a,h)=>a+h.inc-h.exp,0)/hs.length:0;
+    q.money=Math.round((q.money||0)+avg*.85);q.directorDays=(q.directorDays||0)+1;}
   checkGoals();
   if(S.money<D().bank){openSheet(bankruptHTML);return;}
   openSheet(dayHTML);
 }
+function yearEnd(){
+  const yr=yearOf(S.day),Y=S.year||{guests:0,inc:0,exp:0};
+  S.nat=S.nat||[{name:'Euro Fantasia',rating:74},{name:'Kingdom of Wonders',rating:68},{name:'Aqua Splash',rating:57}];
+  for(const p of S.nat)p.rating=clamp(Math.round(p.rating+rnd(-4,5)),45,92);
+  const rank=[{name:S.name,rating:S.rating,me:1},{name:S.rival.name,rating:Math.round(S.rival.rating)},...S.nat].sort((a,b)=>b.rating-a.rating);
+  const pos=rank.findIndex(r=>r.me)+1,prize=[0,15000,7000,3000][pos]||0;
+  let winter=fixedCosts()*10;for(const b of S.b)winter+=upkeep(b)*4;winter+=staffWages()*6;
+  S.money+=prize-winter;
+  S.yearRes={yr,Y,rank,pos,prize,winter};
+  news(`🏆 Bilan de l’an ${yr} : ${pos}${pos===1?'er':'e'} au classement des parcs${prize?` (prime de ${fmt(prize)})`:''}. Frais d’hiver : ${fmt(winter)}.`);
+  S.year={guests:0,inc:0,exp:0};
+}
+function yearHTML(){const r=S.yearRes;return`<h2>❄️ Fin de l’an ${r.yr}</h2><div class="sub">Le parc ferme pour l’hiver. Voici ton bilan annuel.</div>
+  <div class="kpis" style="margin-top:12px"><div class="kpi"><div class="k">Visiteurs de l’année</div><div class="v">${num(r.Y.guests)}</div></div><div class="kpi"><div class="k">Recettes</div><div class="v">${fmt(r.Y.inc)}</div></div>
+  <div class="kpi"><div class="k">Résultat</div><div class="v ${r.Y.inc-r.Y.exp>=0?'pos':'negt'}">${fmt(r.Y.inc-r.Y.exp)}</div></div></div>
+  <h3>Classement des parcs</h3><table><tr><th>#</th><th style="text-align:left">Parc</th><th>Note</th></tr>${r.rank.map((p,i)=>`<tr${p.me?' style="color:var(--gold);font-weight:800"':''}><td>${['🥇','🥈','🥉'][i]||i+1}</td><td style="text-align:left">${p.name}</td><td>${p.rating} %</td></tr>`).join('')}</table>
+  <h3>Hiver</h3><table><tr><td>${r.prize?'🏆 Prime du classement':'Pas de prime cette année'}</td><td class="pos">${fmt(r.prize)}</td></tr><tr><td>❄️ Entretien hivernal, salaires et frais fixes</td><td class="negt">${fmt(-r.winter)}</td></tr></table>
+  <div class="sheetacts"><button class="btn" data-a="next">🌷 Ouvrir la saison de l’an ${r.yr+1}</button></div>`;}
 function nextDay(){
   S.day++;S.time=OPEN;S.today=newDay();S.series=[];
-  for(const b of S.b){b.yRev=(b.todayRev||0)-upkeep(b);b.yVis=b.todayVis||0;b.todayVis=0;b.todayRev=0;b.closed=false;if(C(b).t==='ride'){b.age=(b.age||0)+1;b.rel=Math.min(b.rel,maxRel(b));if(b.age===25)news(`🧓 ${C(b).e} ${C(b).name} vieillit : pense à la rénover.`);}}
-  S.privateAt=null;S.concert=false;S.rivalPromo=false;if(S.buzz>0)S.buzz--;if(S.sponsorDays>0)S.sponsorDays--;
-  const rv=S.rival;rv.rating=clamp(rv.rating+rnd(-2,2.4)+(S.rating>rv.rating?.8:0),35,93);
+  for(const b of S.b){b.yRev=(b.todayRev||0)-upkeep(b);b.yVis=b.todayVis||0;b.todayVis=0;b.todayRev=0;b.closed=false;if(C(b).t==='ride'){b.age=(b.age||0)+1;b.rel=Math.min(b.rel,maxRel(b));if(b.age===25)news(`🧓 ${C(b).e} ${bname(b)} vieillit : pense à la rénover.`);}}
+  staffDay();
+  S.privateAt=null;S.concert=false;S.special=null;S.rivalPromo=false;if(S.buzz>0)S.buzz--;if(S.sponsorDays>0)S.sponsorDays--;
+  const rv=S.rival;rv.base=rv.base||rv.rating;{const tg=clamp(rv.base+(S.rating-55)*.35+(yearOf(S.day)-1)*3,45,85);rv.rating=clamp(rv.rating+(tg-rv.rating)*.08+rnd(-1.5,1.5),35,93);}
   const rr=Math.random();
   if(rr<.07){rv.rating=Math.min(95,rv.rating+6);news(`🏰 ${rv.name} inaugure une nouvelle attraction : leur note grimpe à ${Math.round(rv.rating)} %.`);}
   else if(rr<.13){S.rivalPromo=true;news(`🏷️ ${rv.name} lance une promo aujourd’hui : une partie du public part chez eux.`);}
@@ -559,7 +637,9 @@ function nextDay(){
   if(r<.12){S.event={type:'school',time:600+(Math.random()*240|0)};}
   else if(r<.22){S.event={type:'inspection',time:900};news('📋 Une inspection sanitaire est annoncée pour 15h00 aujourd’hui.');}
   else if(r<.3&&S.rating>=55){S.press=true;news('📰 Un journal publie un article élogieux sur ton parc : affluence en hausse aujourd’hui !');}
-  news(`${WEATHER[S.weather].e} Jour ${S.day} — météo : ${WEATHER[S.weather].n}.`);
+  if(dayIn(S.day)===1)news(`${SEASONS[seasonOf(S.day)].e} Début ${seasonOf(S.day)===1?'de l’':'du '}${SEASONS[seasonOf(S.day)].n.toLowerCase()} de l’an ${yearOf(S.day)} !`);
+  S.special=S.planned||null;S.planned=null;if(S.special)news(`${SPECIALS[S.special].e} Aujourd’hui : ${SPECIALS[S.special].n} !`);
+  news(`${WEATHER[S.weather].e} ${DOW[dowOf(S.day)]} — météo : ${WEATHER[S.weather].n}.`);
   S.offer=null;
   if(S.day>=3&&Math.random()<.3){const def=pick(OFFERS),o=def.make();if(o){o.id=def.id;S.offer=o;}}
   save();closeSheet();render();
@@ -568,16 +648,17 @@ function nextDay(){
 
 // ====================== ACTIONS ======================
 function spend(c,k){if(S.money<c){toast('💸 Pas assez d’argent');return false;}S.money-=c;S.today[k||'build']+=c;return true;}
-function build(type,where){
-  const it=CATALOG[type];
+let pendingCfg=null,dz=null;
+function build(type,where,cfg){
+  const it=cfg?{...CATALOG[type],...cfg}:CATALOG[type];
   if(S.totalGuests<it.unlock){toast(`🔒 Débloqué à ${num(it.unlock)} visiteurs`);return;}
   const spots=S.parcels.filter(i=>freeIn(i)>=it.plots);
   if(!spots.length){toast('📐 Plus assez de place : achète un nouveau terrain');return;}
-  if(where==null){if(spots.length===1)where=spots[0];else{openSheet(()=>placeHTML(type));return;}}
+  if(where==null){if(spots.length===1)where=spots[0];else{pendingCfg=cfg||null;openSheet(()=>placeHTML(type));return;}}
   if(freeIn(where)<it.plots){toast('📐 Pas assez de place sur ce terrain');return;}
   if(!spend(it.cost))return;
-  const b={parcel:where,id:S.nid++,type,lvl:1,price:it.price,visitors:0,revenue:0,rel:100,broken:false,repairT:0,todayVis:0,todayRev:0,age:0,yRev:null};rtInit(b);
-  S.b.push(b);news(`🏗️ Construction : ${it.e} ${it.name}`);toast(`${it.e} Ouverture : ${it.name}`);
+  const b={cfg:cfg?{exc:cfg.exc,cost:cfg.cost,plots:cfg.plots,cap:cfg.cap,dur:cfg.dur,upkeep:cfg.upkeep,len:cfg.len,height:cfg.height,loops:cfg.loops}:undefined,cname:cfg?cfg.name:undefined,parcel:where,id:S.nid++,type,lvl:1,price:it.price,visitors:0,revenue:0,rel:100,broken:false,repairT:0,todayVis:0,todayRev:0,age:0,yRev:null};rtInit(b);
+  S.b.push(b);news(`🏗️ Construction : ${it.e} ${cfg?cfg.name:it.name}`);toast(`${it.e} Ouverture : ${cfg?cfg.name:it.name}`);pendingCfg=null;sfx.build();
   closeSheet();if(it.t==='ride')tab='rides';else tab='shops';render();checkGoals();
 }
 function act(a,v,el){
@@ -588,23 +669,39 @@ function act(a,v,el){
     case'build':build(v);return;
     case'rebrandMenu':openSheet(rebrandHTML);return;
     case'rebrand':if(v===S.theme){closeSheet();return;}if(spend(5000)){const old=THEMES[S.theme].n;S.theme=v;applyTheme();calcRating();news(`🎭 Nouveau thème : ${THEMES[v].e} ${THEMES[v].n} (fini, ${old.toLowerCase()} !). Les attractions sont renommées.`);toast(`🎭 Bienvenue dans l’univers ${THEMES[v].n}`);}closeSheet();render();return;
-    case'buildAt':build(v,+el.dataset.p);return;
+    case'buildAt':build(v,+el.dataset.p,v==='coaster'?pendingCfg:null);return;
     case'buyLand':{const q=parcelDef(+v);if(S.parcels.includes(q.i))return;if(spend(q.price)){S.parcels.push(q.i);calcRating();news(`🗺️ Achat du terrain « ${q.name} » (${q.size} emplacements, ${TRAITS[q.trait].n.toLowerCase()}).`);toast(`🗺️ Nouveau terrain : ${q.name}`);}break;}
     case'wz':wiz[el.dataset.k]=el.dataset.k==='parcel'?+v:v;if(el.dataset.k==='loc')wiz.parcel=null;openSheet(welcomeHTML);return;
     case'wzStep':wiz.step=+v;openSheet(welcomeHTML);return;
     case'wzStart':{if(wiz.parcel==null){toast('Choisis ton premier terrain');return;}
-      newGame({name:(wiz.name||'').trim()||'Mon parc',theme:wiz.theme,loc:wiz.loc,diff:wiz.diff,parcel:wiz.parcel});S.seenWelcome=true;tab='home';save();closeSheet();render();checkGoals();return;}
+      if(wiz.expand){S.money-=EXPAND_COST;news(`🏢 ${fmt(EXPAND_COST)} investis pour ouvrir un nouveau parc.`);save();}else{PARKS=[];CUR=0;}
+      newGame({name:(wiz.name||'').trim()||'Mon parc',theme:wiz.theme,loc:wiz.loc,diff:wiz.diff,parcel:wiz.parcel,money:wiz.expand?EXPAND_COST:undefined});
+      if(wiz.expand){PARKS.push(null);CUR=PARKS.length-1;toast('🏢 Ton nouveau parc ouvre ses portes !');}else PARKS=[null];S.seenWelcome=true;tab='home';save();closeSheet();render();checkGoals();return;}
     case'price':if(b)b.price=clamp(b.price+ +el.dataset.d,0,60);break;
-    case'up':if(b&&b.lvl<3&&spend(upCost(b))){b.lvl++;b.rel=maxRel(b);news(`⬆️ ${C(b).e} ${C(b).name} passe au niveau ${b.lvl}.`);toast(`⬆️ ${C(b).name} : niveau ${b.lvl}`);checkGoals();}break;
-    case'repair':if(b&&b.broken&&spend(Math.round(C(b).cost*.08))){b.broken=false;b.rel=maxRel(b);toast('🔧 Réparée !');}break;
-    case'renov':if(b&&spend(Math.round(C(b).cost*.3))){b.age=0;b.rel=100;b.broken=false;news(`✨ Rénovation complète : ${C(b).e} ${C(b).name}`);toast('✨ Comme neuve !');}break;
+    case'up':if(b&&b.lvl<3&&spend(upCost(b))){b.lvl++;b.rel=maxRel(b);news(`⬆️ ${C(b).e} ${bname(b)} passe au niveau ${b.lvl}.`);toast(`⬆️ ${bname(b)} : niveau ${b.lvl}`);checkGoals();}break;
+    case'repair':if(b&&b.broken&&spend(Math.round(P(b).cost*.08))){b.broken=false;b.rel=maxRel(b);toast('🔧 Réparée !');}break;
+    case'renov':if(b&&spend(Math.round(P(b).cost*.3))){b.age=0;b.rel=100;b.broken=false;news(`✨ Rénovation complète : ${C(b).e} ${bname(b)}`);toast('✨ Comme neuve !');}break;
     case'offerYes':{const o=S.offer;S.offer=null;if(o){const def=OFFERS.find(x=>x.id===o.id);if(def.accept(o)!==false){news(`🤝 Offre acceptée : ${def.e} ${def.t}`);toast('🤝 Offre acceptée');}}closeSheet();render();return;}
     case'offerNo':{const o=S.offer;S.offer=null;if(o)news(`🙅 Offre refusée : ${OFFERS.find(x=>x.id===o.id).t}`);closeSheet();render();return;}
     case'sell':if(confirmKey!=='sell'+id){confirmKey='sell'+id;break;}
-      if(b){for(const g of b.queue.concat(b.riders))decide(g);S.b=S.b.filter(x=>x!==b);const r=Math.round(C(b).cost*.5);S.money+=r;news(`💥 Démolition : ${C(b).e} ${C(b).name} (+${fmt(r)})`);}confirmKey=null;break;
+      if(b){for(const g of b.queue.concat(b.riders))decide(g);S.b=S.b.filter(x=>x!==b);const r=Math.round(P(b).cost*.5);S.money+=r;news(`💥 Démolition : ${C(b).e} ${bname(b)} (+${fmt(r)})`);}confirmKey=null;break;
     case'entry':S.entry=clamp(S.entry+ +v,0,120);break;
     case'bins':if(+v>0){if(spend(60))S.bins++;}else if(S.bins>0)S.bins--;checkGoals();break;
-    case'staff':{const k=el.dataset.k;S[k]=clamp(S[k]+ +v,0,30);break;}
+    case'rdLevel':S.rd.level=+v;break;
+    case'rdPick':if(S.rd.cur&&S.rd.prog>0&&confirmKey!=='rd'+v){confirmKey='rd'+v;toast('Touche encore pour abandonner la recherche en cours');return;}S.rd.cur=v;S.rd.prog=0;if(!S.rd.level)S.rd.level=1;confirmKey=null;break;
+    case'fp':S.fpPrice=clamp(S.fpPrice+ +v,0,60);break;
+    case'design':dz={len:2,height:40,loops:2,name:CATALOG.coaster.name};openSheet(designHTML);return;
+    case'dz':{const k=el.dataset.k,mx=has('extreme')?{height:120,loops:7,len:3}:{height:80,loops:4,len:3},mn={height:20,loops:0,len:1},st={height:10,loops:1,len:1};
+      dz[k]=clamp(dz[k]+ +v*st[k],mn[k],mx[k]);openSheet(designHTML);return;}
+    case'dzBuild':{const cfg=coasterStats(dz);cfg.name=(dz.name||'').trim()||CATALOG.coaster.name;pendingCfg=cfg;build('coaster',null,cfg);return;}
+    case'switchPark':switchPark(+v);return;
+    case'expand':if(!canExpand()){toast('Conditions non remplies');return;}wiz=newWiz(true);openSheet(welcomeHTML);return;
+    case'sendTo':{const q=PARKS[+v];if(q&&S.money>=10000){S.money-=10000;q.money+=10000;toast(`💸 10 000 € envoyés à ${q.name}`);}break;}
+    case'takeFrom':{const q=PARKS[+v];if(q&&q.money>=10000){q.money-=10000;S.money+=10000;toast(`💰 10 000 € rapatriés de ${q.name}`);}break;}
+    case'hire':{const c=(S.cands||[]).find(x=>x.id===id);if(c){S.cands=S.cands.filter(x=>x!==c);S.staff.push(c);news(`🤝 Embauche : ${ROLES[c.role].e} ${c.name} (${ROLES[c.role].n}).`);toast(`🤝 ${c.name} rejoint l’équipe`);}break;}
+    case'train':{const m=S.staff.find(x=>x.id===id);if(m&&m.lvl<3&&spend(400*m.lvl)){m.lvl++;m.morale=Math.min(100,m.morale+10);toast(`🎓 ${m.name} passe au niveau ${m.lvl}`);}break;}
+    case'raise':{const m=S.staff.find(x=>x.id===id);if(m){m.salary=Math.round(m.salary*1.1);m.morale=Math.min(100,m.morale+15);toast(`💶 ${m.name} est ravi(e)`);}break;}
+    case'fire':{if(confirmKey!=='fire'+id){confirmKey='fire'+id;break;}const m=S.staff.find(x=>x.id===id);if(m){S.staff=S.staff.filter(x=>x!==m);for(const o of S.staff)o.morale=Math.max(0,o.morale-5);news(`👋 Licenciement : ${m.name}.`);}confirmKey=null;break;}
     case'decor':{const d=DECOR[v];if(S.totalGuests<(d.unlock||0)){toast(`🔒 Débloqué à ${d.unlock} visiteurs`);return;}if(spend(d.cost)){S.decor[v]=(S.decor[v]||0)+1;calcRating();toast(`${d.e} ${d.name} ajouté`);}break;}
     case'camp':{const c=CAMPAIGNS[v];if(S.totalGuests<(c.unlock||0)){toast(`🔒 Débloqué à ${c.unlock} visiteurs`);return;}
       if(S.campaigns.some(x=>x.k===v)){toast('Cette campagne est déjà en cours');return;}
@@ -612,17 +709,19 @@ function act(a,v,el){
     case'borrow':if(S.loan<50000){S.loan+=10000;S.money+=10000;news('🏦 Emprunt de 10 000 € contracté.');}break;
     case'repay':if(S.loan>0&&S.money>=10000){S.loan-=10000;S.money-=10000;news('🏦 10 000 € de prêt remboursés.');}else toast('💸 Il faut 10 000 € pour rembourser');break;
     case'close':closeSheet();return;
-    case'next':nextDay();return;
+    case'next':if(S.day%YEAR_LEN===0&&!S.yearDone){S.yearDone=true;yearEnd();openSheet(yearHTML);return;}S.yearDone=false;nextDay();return;
+    case'special':{const sp=SPECIALS[v];if(S.planned){toast('Un événement est déjà prévu demain');return;}
+      if(spend(sp.cost,'marketing')){S.planned=v;S.spUsed=S.spUsed||{};S.spUsed[v]=yearOf(S.day)*10+seasonOf(S.day);news(`🗓️ Événement réservé pour demain : ${sp.e} ${sp.n}.`);toast(`${sp.e} Prévu demain !`);}break;}
     
     case'new':if(confirmKey!=='new'){confirmKey='new';break;}
-    case'newOk':try{localStorage.removeItem(SAVE_KEY);}catch(_){}wiz=newWiz();confirmKey=null;tab='home';render();openSheet(welcomeHTML);return;
+    case'newOk':try{localStorage.removeItem(SAVE_KEY);}catch(_){}PARKS=[];CUR=0;wiz=newWiz();confirmKey=null;tab='home';render();openSheet(welcomeHTML);return;
   }
-  if(a!=='sell'&&a!=='new')confirmKey=null;
+  if(a!=='sell'&&a!=='new'&&a!=='fire'&&a!=='rdPick')confirmKey=null;
   render();
 }
 
 // ====================== INTERFACE ======================
-const TABS=[['home','📊 Tableau de bord'],['rides','🎢 Attractions'],['shops','🍔 Boutiques'],['land','🗺️ Terrains'],['park','🌳 Parc & équipe'],['fin','💰 Finances & pub'],['goals','🎯 Objectifs']];
+const TABS=[['home','📊 Tableau de bord'],['rides','🎢 Attractions'],['shops','🍔 Boutiques'],['land','🗺️ Terrains'],['staff','👷 Personnel'],['rd','🔬 Recherche'],['park','🌳 Parc'],['fin','💰 Finances'],['group','🏢 Groupe'],['goals','🎯 Objectifs']];
 function stp(a,v,val,extra){return`<div class="stp"><button data-a="${a}" data-v="${v}" data-d="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="${v}" data-d="1" ${extra||''}>+</button></div>`;}
 function stp2(a,val,extra){return`<div class="stp"><button data-a="${a}" data-v="-1" ${extra||''}>−</button><b>${val}</b><button data-a="${a}" data-v="1" ${extra||''}>+</button></div>`;}
 function barH(v,col){return`<div class="bar"><i style="width:${clamp(v,0,100)}%;background:${col||(v<40?'#ff5d7a':v<65?'#ffb703':'#2ec4b6')}"></i></div>`;}
@@ -631,7 +730,7 @@ function header(){
   const m=$('#hMoney');m.textContent='💰 '+fmt(S.money);m.classList.toggle('neg',S.money<0);
   $('#hGuests').textContent='👥 '+num(guests.length);
   $('#hRating').textContent='⭐ '+S.rating+' %';
-  $('#hTime').textContent=`${WEATHER[S.weather].e} ${isHoliday(S.day)?'🏖️ ':''}${DOW[dowOf(S.day)].slice(0,3)}. J${S.day} · ${hhmm(S.time)}`;
+  $('#hTime').textContent=`${WEATHER[S.weather].e} ${SEASONS[seasonOf(S.day)].e} ${DOW[dowOf(S.day)].slice(0,3)}. ${dayIn(S.day)}/${SEASON_LEN} · An ${yearOf(S.day)} · ${hhmm(S.time)}`;
   const broken=S.b.some(b=>b.broken);
   $('#nav').innerHTML=TABS.map(([k,l])=>`<button data-a="tab" data-v="${k}" class="${tab===k?'on':''}">${l}${k==='rides'&&broken?'<span class="dot"></span>':''}</button>`).join('');
 }
@@ -643,7 +742,7 @@ function render(){
   header();
   let h='';
   switch(tab){
-    case'home':h=homeHTML();break;case'rides':h=ridesHTML();break;case'shops':h=shopsHTML();break;case'land':h=landHTML();break;
+    case'home':h=homeHTML();break;case'rides':h=ridesHTML();break;case'shops':h=shopsHTML();break;case'land':h=landHTML();break;case'staff':h=staffHTML();break;case'group':h=groupHTML();break;case'rd':h=rdHTML();break;
     case'park':h=parkHTML();break;case'fin':h=finHTML();break;case'goals':h=goalsHTML();break;
   }
   $('#content').innerHTML=h;
@@ -655,9 +754,9 @@ function tips(){
   if(R.length&&!hasKind('drink'))add(9,'🥤','Aucun stand de boissons : tes visiteurs vont avoir soif.','shops');
   if(R.length&&!hasKind('toilet'))add(9,'🚻','Pas de toilettes : les visiteurs repartiront vite et mécontents.','shops');
   if(S.money<0)add(9,'🏦','Trésorerie négative : réduis les charges, monte un peu tes prix ou emprunte.','fin');
-  if(S.b.some(b=>b.broken)&&!S.mechanics)add(8,'🔧','Une attraction est en panne et personne ne peut la réparer : engage un mécanicien.','park');
+  if(S.b.some(b=>b.broken)&&!M())add(8,'🔧','Une attraction est en panne et personne ne peut la réparer : engage un mécanicien.','staff');
   if(S.entry>fairEntry()*1.3)add(7,'🎟️',`Ton entrée est trop chère : vise environ ${fairEntry()} €.`,'park');
-  if(guests.length>20&&S.rb.clean<60)add(7,'🧹','Le parc est sale : engage des agents d’entretien.','park');
+  if(guests.length>20&&S.rb.clean<60)add(7,'🧹','Le parc est sale : engage des agents d’entretien.','staff');
   if(guests.length>S.bins*35+20)add(6,'🗑️',`Pas assez de poubelles pour ${num(guests.length)} visiteurs.`,'park');
   if(guests.length>30&&hasKind('food')&&A(g=>g.hunger)>55)add(5,'🍕','Les visiteurs ont faim malgré tes stands : ouvre-en un de plus ou agrandis-le.','shops');
   if(guests.length>30&&hasKind('toilet')&&A(g=>g.bladder)>60)add(5,'🚻','Les toilettes sont saturées : construis-en d’autres.','shops');
@@ -669,10 +768,16 @@ function tips(){
   const sw=segWeights(),tw=sw.teen/(sw.family+sw.teen+sw.senior);
   if(R.length>=3&&tw<.15)add(3,'🧑‍🎤','Peu d’ados viennent : ils veulent des sensations fortes (⚡ 5 et plus).','rides');
     if(R.length&&S.entry<fairEntry()*.7)add(3,'🎟️',`Ton entrée est bon marché : tu pourrais monter vers ${fairEntry()} €.`,'park');
-  const hol=isHoliday(S.day+1)&&!isHoliday(S.day);
-  if(hol||dowOf(S.day+1)===5)add(2,'📅',hol?'Les vacances scolaires commencent demain : attends-toi à beaucoup de familles !':'Le week-end arrive demain : grosse affluence attendue, vérifie tes capacités.','home');
+  const hol=isHoliday(S.day+1)&&!isHoliday(S.day)&&S.day%YEAR_LEN!==0;
+  if(hol||dowOf(S.day+1)===5)add(2,'📅',hol?`${holidayName(S.day+1)} dès demain : attends-toi à beaucoup de familles !`:'Le week-end arrive demain : grosse affluence attendue, vérifie tes capacités.','home');
   const old=R.find(b=>(b.age||0)>=25);if(old)add(4,'🧓',`${C(old).name} est usée (fiabilité max ${Math.round(maxRel(old))} %) : une rénovation s’impose.`,'rides');
   if(S.rival&&S.rival.rating>S.rating+5)add(5,'🏰',`${S.rival.name} est mieux noté que toi : il te vole des visiteurs.`,'home');
+  {const se=seasonOf(S.day+1),cand=Object.entries(SPECIALS).find(([k,sp])=>sp.season===se&&!(S.spUsed&&S.spUsed[k]===yearOf(S.day)*10+seasonOf(S.day)));
+   if(cand&&!S.planned&&S.money>cand[1].cost*2&&dayIn(S.day)>=8&&S.day%YEAR_LEN!==0)add(3,cand[1].e,`Pense à organiser l’événement de saison : ${cand[1].n}.`,'fin');}
+  if(S.day%YEAR_LEN===YEAR_LEN-1)add(4,'❄️','Dernier jour de l’année demain : l’hiver coûte cher, garde de la trésorerie.','fin');
+  {const low=S.staff.filter(m=>m.morale<35);if(low.length)add(6,'😤',`${low.length} employé(s) ont un moral très bas : augmente-les ou forme-les avant qu’ils ne partent.`,'staff');}
+  if(S.strike)add(9,'✊','Grève en cours : augmente les salaires pour éviter que ça recommence.','staff');
+  if((S._crowd||0)>1.1)add(7,'😵','Ton parc est saturé : construis des attractions et des stands pour absorber la foule.','rides');
   if(!T.length)add(0,'👍','Tout roule ! Continue à développer ton parc.','home');
   return T.sort((a,b)=>b.p-a.p).slice(0,4);
 }
@@ -686,14 +791,14 @@ function homeHTML(){
     <div class="kpi"><div class="k">Visiteurs aujourd’hui</div><div class="v">${num(S.today.guests)}</div><div class="s">${num(guests.length)} dans le parc</div></div>
     <div class="kpi"><div class="k">Note du parc</div><div class="v">${S.rating} %</div><div class="s">Satisfaction ${Math.round(S.rb.hap)} %</div></div>
     <div class="kpi"><div class="k">Propreté</div><div class="v">${Math.round(S.rb.clean)} %</div><div class="s">Beauté ${Math.round(S.rb.beauty)} %</div></div>
-    <div class="kpi"><div class="k">Calendrier</div><div class="v">${DOW[dowOf(S.day)]}</div><div class="s">${isHoliday(S.day)?'🏖️ Vacances scolaires':dowOf(S.day)>=5?'Week-end : forte affluence':'Jour de semaine'}</div></div>
+    <div class="kpi"><div class="k">${SEASONS[seasonOf(S.day)].e} ${SEASONS[seasonOf(S.day)].n} · an ${yearOf(S.day)}</div><div class="v">${DOW[dowOf(S.day)]}</div><div class="s">Jour ${dayIn(S.day)}/${SEASON_LEN} · ${isHoliday(S.day)?'🏖️ '+holidayName(S.day):dowOf(S.day)>=5?'week-end':'semaine'}</div></div>
     <div class="kpi"><div class="k">Météo</div><div class="v">${W.e} ${W.n}</div><div class="s">Demain : ${F.e} ${F.n}</div></div>
   </div>`;
   h+=`<div class="panel"><h3>💡 Conseiller</h3>${tips().map(t=>`<div class="row"><div class="l" style="font-weight:600"><span style="font-size:20px;margin-right:6px">${t.e}</span>${t.t}</div>${t.tab!==tab?`<button class="btn sm sec" data-a="tab" data-v="${t.tab}">Voir →</button>`:''}</div>`).join('')}</div>`;
   {const rv=S.rival,cf=compF(),eff=[];
    if(S.buzz>0)eff.push(`🤳 Buzz influenceur (${S.buzz} j)`);if(S.concert)eff.push('🎸 Concert');if(S.privateAt)eff.push('🏢 Soirée privée à 19h');
    if(S.sponsorDays>0)eff.push(`🪧 Panneaux sponsor (${S.sponsorDays} j)`);if(S.influencer)eff.push(`🤳 ${S.influencer} visite le parc`);if(S.rivalPromo)eff.push(`🏷️ Promo chez ${rv.name}`);
-   if(S.press)eff.push('📰 Article de presse');for(const c of S.campaigns)eff.push(`${CAMPAIGNS[c.k].e} ${CAMPAIGNS[c.k].name} (${c.days} j)`);
+   if(S.press)eff.push('📰 Article de presse');if(S.special)eff.push(`${SP().e} ${SP().n}`);if(S.planned)eff.push(`🗓️ Demain : ${SPECIALS[S.planned].e} ${SPECIALS[S.planned].n}`);for(const c of S.campaigns)eff.push(`${CAMPAIGNS[c.k].e} ${CAMPAIGNS[c.k].name} (${c.days} j)`);
    h+=`<div class="two"><div class="panel"><h3>🏰 Concurrence</h3>
      <div class="need"><div class="h"><span>🎡 Ton parc</span><span>${S.rating} %</span></div>${barH(S.rating,'#2ec4b6')}</div>
      <div class="need"><div class="h"><span>🏰 ${rv.name}</span><span>${Math.round(rv.rating)} %</span></div>${barH(rv.rating,'#ff5d7a')}</div>
@@ -718,7 +823,7 @@ function homeHTML(){
   h+=`<div class="two"><div class="panel"><h3>Ce que pensent les visiteurs</h3>${th.length?th.map(([k,v])=>`<div class="th"><span style="font-size:20px">${THOUGHTS[k].e}</span><span style="${THOUGHTS[k].good?'color:#2ec4b6;font-weight:700':''}">« ${THOUGHTS[k].t} »</span><span class="c">${Math.round(v)}</span></div>`).join(''):'<p class="sub">Pas encore d’avis.</p>'}</div>
   <div class="panel"><h3>Journal du parc</h3><div class="news">${S.news.slice(0,8).map(n=>`<div><span class="t">J${n.d} ${n.t}</span><span>${n.txt}</span></div>`).join('')}</div></div></div>`;
   const top=rides().slice().sort((a,b)=>(b.todayVis||0)-(a.todayVis||0)).slice(0,6);
-  if(top.length)h+=`<div class="panel"><h3>Attractions du jour</h3><table><tr><th>Attraction</th><th>Visiteurs</th><th>File</th><th>Fiabilité</th></tr>${top.map(b=>`<tr><td>${C(b).e} ${C(b).name}</td><td>${num(b.todayVis||0)}</td><td>${b.queue.length}</td><td>${b.broken?'🔧 en panne':Math.round(b.rel)+' %'}</td></tr>`).join('')}</table></div>`;
+  if(top.length)h+=`<div class="panel"><h3>Attractions du jour</h3><table><tr><th>Attraction</th><th>Visiteurs</th><th>File</th><th>Fiabilité</th></tr>${top.map(b=>`<tr><td>${C(b).e} ${bname(b)}</td><td>${num(b.todayVis||0)}</td><td>${b.queue.length}</td><td>${b.broken?'🔧 en panne':Math.round(b.rel)+' %'}</td></tr>`).join('')}</table></div>`;
   return h;
 }
 function landBar(kind){
@@ -740,10 +845,11 @@ function ridesHTML(){
   if(!list.length)return h+`<div class="empty">Aucune attraction pour l’instant.<br><button class="btn teal" data-a="catalog" data-v="ride">＋ Construire une attraction</button></div>`;
   h+='<div class="cards">';
   for(const b of list){const it=C(b),f=fairRide(b);
-    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${it.name}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
+    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${bname(b)}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
       <div class="mini"><span>File d’attente</span><b>${b.queue.length} / ${cap(b)*3}</b></div>${barH(b.queue.length/(cap(b)*3)*100,'#4cc9f0')}
       <div class="mini"><span>Fiabilité</span><b>${Math.round(b.rel)} %</b></div>${barH(b.rel)}
-      <div class="mini"><span>Frissons ⚡ ${exc(b).toFixed(1)} · ${cap(b)} places · ${it.dur} min</span></div>
+      ${b.cfg?`<div class="mini"><span>Sur mesure</span><b>${b.cfg.height} m · ${b.cfg.loops} looping(s) · <span class="st ${intensity(exc(b))[1]}" style="margin:0">${intensity(exc(b))[0]}</span></b></div>`:''}
+      <div class="mini"><span>Frissons ⚡ ${exc(b).toFixed(1)} · ${cap(b)} places · ${P(b).dur} min</span></div>
       <div class="mini"><span>Aujourd’hui</span><b>${num(b.todayVis||0)} visiteurs</b></div>
       <div class="mini"><span>Entretien</span><b>${fmt(upkeep(b))} / jour</b></div>
       <div class="mini"><span>Emplacement</span><b>${TRAITS[parcelDef(b.parcel).trait].e} ${parcelDef(b.parcel).name}</b></div>
@@ -751,8 +857,8 @@ function ridesHTML(){
       <div class="mini"><span>Hier</span><b>${b.yVis==null?'—':`${num(b.yVis)} visiteurs · ${b.yVis?(upkeep(b)/b.yVis).toFixed(2).replace('.',',')+' €':'—'} d’entretien / visiteur`}</b></div>
       <div class="mini"><span>Âge</span><b>${b.age||0} jour(s) · fiabilité max ${Math.round(maxRel(b))} %</b></div>
       <div class="acts">${b.lvl<3?`<button class="btn sm" data-a="up" data-v="${b.id}">⬆️ Améliorer (${fmt(upCost(b))})</button>`:''}
-      ${b.broken?`<button class="btn sm teal" data-a="repair" data-v="${b.id}">🔧 Réparer (${fmt(it.cost*.08)})</button>`:''}
-      ${(b.age||0)>=10?`<button class="btn sm teal" data-a="renov" data-v="${b.id}">✨ Rénover (${fmt(it.cost*.3)})</button>`:''}
+      ${b.broken?`<button class="btn sm teal" data-a="repair" data-v="${b.id}">🔧 Réparer (${fmt(P(b).cost*.08)})</button>`:''}
+      ${(b.age||0)>=10?`<button class="btn sm teal" data-a="renov" data-v="${b.id}">✨ Rénover (${fmt(P(b).cost*.3)})</button>`:''}
       <button class="btn sm ${confirmKey==='sell'+b.id?'red':'sec'}" data-a="sell" data-v="${b.id}">${confirmKey==='sell'+b.id?'Confirmer ?':'💥 Démolir'}</button></div></div>`;}
   return h+'</div>';
 }
@@ -762,7 +868,7 @@ function shopsHTML(){
   if(!list.length)return h+`<div class="empty">Aucune boutique. Les visiteurs auront vite faim et soif !<br><button class="btn teal" data-a="catalog" data-v="shop">＋ Construire une boutique</button></div>`;
   h+='<div class="cards">';
   for(const b of list){const it=C(b);
-    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${it.name}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
+    h+=`<div class="card"><div class="ch"><span class="big">${it.e}</span><div><b>${bname(b)}</b><span class="lvl">${stars(b.lvl)} Niveau ${b.lvl}</span></div>${status(b)}</div>
       <div class="mini"><span>File d’attente</span><b>${b.queue.length}</b></div>${barH(b.queue.length/(rate(b)*10)*100,'#4cc9f0')}
       <div class="mini"><span>Service</span><b>${rate(b).toFixed(1)} clients / min</b></div>
       <div class="mini"><span>Aujourd’hui</span><b>${num(b.todayVis||0)} clients · ${fmt(b.todayRev||0)}</b></div>
@@ -779,11 +885,6 @@ function parkHTML(){
     <div class="row"><div class="l">🗑️ Poubelles<small>60 € pièce · une poubelle pour ~35 visiteurs</small></div>${stp2('bins',S.bins)}</div></div>
   <div class="panel"><h3>Note du parc : ${S.rating} %</h3>
     ${[['hap','😊 Bonheur des visiteurs','45 %'],['variety','🎢 Variété de l’offre','20 %'],['beauty','🌳 Beauté du parc','20 %'],['clean','🧹 Propreté','15 %']].map(([k,l,w])=>`<div class="need"><div class="h"><span>${l} <span class="sub">(${w})</span></span><span>${Math.round(rb[k])} %</span></div>${barH(rb[k])}</div>`).join('')}</div></div>`;
-  h+=`<div class="panel"><h3>Personnel</h3>
-    <div class="row"><div class="l">🧹 Agents d’entretien<small>Gardent le parc propre · 70 € / jour chacun</small></div>${stp2('staff',S.janitors,'data-k="janitors"')}</div>
-    <div class="row"><div class="l">🔧 Mécaniciens<small>Réparent les pannes et entretiennent les attractions · 100 € / jour · ${S.b.filter(b=>b.broken).length} en panne</small></div>${stp2('staff',S.mechanics,'data-k="mechanics"')}</div>
-    <div class="row"><div class="l">🤹 Animateurs<small>Mettent de l’ambiance et rendent les visiteurs heureux · 80 € / jour</small></div>${stp2('staff',S.animators,'data-k="animators"')}</div>
-    <p class="sub">Masse salariale : <b>${fmt(S.janitors*70+S.mechanics*100+S.animators*80)} / jour</b></p></div>`;
   h+=`<div class="panel"><h3>Embellissement · beauté ${Math.round(rb.beauty)} %</h3><p class="sub">Plus le parc est grand, plus il faut de décor pour garder une bonne note de beauté. Le décor n’utilise pas d’emplacement.</p>`;
   for(const k in DECOR){const d=DECOR[k],lock=S.totalGuests<(d.unlock||0);
     h+=`<div class="row" style="${lock?'opacity:.5':''}"><div class="l">${d.e} ${d.name}${k==='themed'?` <span class="tag gold">${THEMES[S.theme].e} Thème</span>`:''} <span class="sub">× ${S.decor[k]||0}</span><small>+${d.pts} pts de beauté · entretien ${d.upkeep} € / jour${lock?` · 🔒 ${d.unlock} visiteurs`:''}</small></div><button class="btn sm" data-a="decor" data-v="${k}">Acheter ${fmt(d.cost)}</button></div>`;}
@@ -793,7 +894,7 @@ function parkHTML(){
 }
 function finHTML(){
   const T=S.today;let up=fixedCosts();for(const b of S.b)up+=upkeep(b);for(const k in S.decor)up+=DECOR[k].upkeep*S.decor[k];
-  const wages=S.janitors*70+S.mechanics*100+S.animators*80;
+  const wages=staffWages();
   let h=goalBar()+`<div class="kpis">
    <div class="kpi"><div class="k">🎟️ Entrées</div><div class="v">${fmt(T.entry)}</div></div>
    <div class="kpi"><div class="k">🍔 Boutiques</div><div class="v">${fmt(T.shops)}</div></div>
@@ -807,6 +908,10 @@ function finHTML(){
     svg+='</svg>';
     h+=`<div class="panel"><h3>Recettes <span style="color:#2ec4b6">■</span> et charges <span style="color:#ff5d7a">■</span> par jour</h3>${svg}
     <table><tr><th>Jour</th><th>Visiteurs</th><th>Note</th><th>Recettes</th><th>Charges</th><th>Résultat</th></tr>${S.history.slice().reverse().map(d=>`<tr><td>${d.day}</td><td>${num(d.guests)}</td><td>${d.rating} %</td><td>${fmt(d.inc)}</td><td>${fmt(d.exp)}</td><td class="${d.inc-d.exp>=0?'pos':'negt'}">${fmt(d.inc-d.exp)}</td></tr>`).join('')}</table></div>`;}
+  {const se=seasonOf(S.day);h+=`<div class="panel"><h3>🎉 Événements spéciaux</h3><p class="sub">Réserve un événement pour demain. Un seul par jour, chacun une fois par saison.${S.planned?` <b style="color:var(--gold)">Prévu demain : ${SPECIALS[S.planned].e} ${SPECIALS[S.planned].n}</b>`:''}${S.special?` · Aujourd’hui : ${SP().e} ${SP().n}`:''}</p>`;
+    for(const k in SPECIALS){const sp=SPECIALS[k],okSeason=sp.season==null||sp.season===seasonOf(S.day+1),used=S.spUsed&&S.spUsed[k]===yearOf(S.day)*10+se,last=S.day%YEAR_LEN===0;
+      h+=`<div class="row" style="${okSeason?'':'opacity:.45'}"><div class="l">${sp.e} ${sp.n}<small>${sp.d} · +${Math.round((sp.arr-1)*100)} % de visiteurs${sp.season!=null?` · ${SEASONS[sp.season].e} ${SEASONS[sp.season].n} uniquement`:''}</small></div>${used?'<span class="st ok">Déjà fait cette saison</span>':`<button class="btn sm teal" data-a="special" data-v="${k}" ${okSeason&&!S.planned&&!last?'':'disabled'}>${fmt(sp.cost)}</button>`}</div>`;}
+    h+='</div>';}
   h+=`<div class="two"><div class="panel"><h3>Marketing ${marketingBoost()?`· +${Math.round(marketingBoost()*100)} % de visiteurs`:''}</h3>`;
   for(const k in CAMPAIGNS){const c=CAMPAIGNS[k],act=S.campaigns.find(x=>x.k===k),lock=S.totalGuests<(c.unlock||0);
     h+=`<div class="row" style="${lock?'opacity:.5':''}"><div class="l">${c.e} ${c.name}<small>+${Math.round(c.boost*100)} % de visiteurs pendant ${c.days} jours${lock?` · 🔒 ${c.unlock} visiteurs`:''}</small></div>${act?`<span class="st ok">Encore ${act.days} j</span>`:`<button class="btn sm teal" data-a="camp" data-v="${k}">${fmt(c.cost)}</button>`}</div>`;}
@@ -832,35 +937,99 @@ function catalogHTML(kind){
     const lock=S.totalGuests<it.unlock,noRoom=it.plots>maxFree,noMoney=S.money<it.cost,th=THEMES[S.theme].bonus.includes(it.id);
     const info=it.t==='ride'?`⚡ ${it.exc} · ${it.cap} places · ${it.plots} empl. · entretien ${it.upkeep} €/j`:`${it.plots} empl. · entretien ${it.upkeep} €/j`;
     return`<div class="ci${lock?' locked':''}"><span class="e">${it.e}</span><b>${it.name}</b>${th?`<span><span class="tag gold">${THEMES[S.theme].e} Bonus thème</span></span>`:''}<span class="d">${it.d}</span><span class="d">${info}</span>
-      ${lock?`<button class="btn sm sec" disabled>🔒 ${num(it.unlock)} visiteurs</button>`:`<button class="btn sm ${noRoom||noMoney?'sec':''}" data-a="build" data-v="${it.id}" ${noRoom||noMoney?'disabled':''}>${noRoom?'Pas assez de place':fmt(it.cost)}</button>`}</div>`;}).join('')}</div>
+      ${lock?`<button class="btn sm sec" disabled>🔒 ${num(it.unlock)} visiteurs</button>`:`<button class="btn sm ${noRoom||noMoney?'sec':''}" data-a="${it.id==='coaster'?'design':'build'}" data-v="${it.id}" ${noRoom||(noMoney&&it.id!=='coaster')?'disabled':''}>${noRoom?'Pas assez de place':it.id==='coaster'?'🛠️ Concevoir (dès 15 000 €)':fmt(it.cost)}</button>`}</div>`;}).join('')}</div>
   <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;
 }
 function rebrandHTML(){return`<h2>🎭 Changer de thème</h2><div class="sub">Coût du changement : ${fmt(5000)} · tes attractions seront renommées et les bonus changeront.</div>
   <div class="cat" style="margin-top:12px">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${S.theme===k?' sel':''}" data-a="rebrand" data-v="${k}" ${S.theme!==k&&S.money<5000?'disabled':''}><span class="e">${t.e}</span><b>${t.n}${S.theme===k?' (actuel)':''}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base).join(', ')}</span></button>`).join('')}</div>
   <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;}
-function placeHTML(type){const it=CATALOG[type];
-  return`<h2>📍 Où construire ${it.e} ${it.name} ?</h2><div class="sub">Il faut ${it.plots} emplacement(s) libre(s) · ${fmt(it.cost)}</div><div class="cat" style="margin-top:12px">${owned().map(q=>{const t=TRAITS[q.trait],f=freeIn(q.i),ok=f>=it.plots,bon=(t.bonus&&t.bonus[type])||(t.shop&&it.t==='shop');
+function designHTML(){
+  const c=coasterStats(dz),[lab,cls]=intensity(c.exc*(has('vr')?1.1:1)),free=Math.max(0,...S.parcels.map(freeIn)),mx=has('extreme')?{height:120,loops:7}:{height:80,loops:4};
+  const row=(k,l,val,sub)=>`<div class="row"><div class="l">${l}<small>${sub}</small></div><div class="stp"><button data-a="dz" data-k="${k}" data-v="-1">−</button><b>${val}</b><button data-a="dz" data-k="${k}" data-v="1">+</button></div></div>`;
+  return`<h2>🛠️ Conçois tes montagnes russes</h2><div class="sub">Plus elles sont intenses, plus les ados adorent… et plus les familles et les seniors risquent d’être malades.</div>
+  <h3>Nom</h3><input class="txt" id="dzName" maxlength="30" value="${(dz.name||'').replace(/"/g,'&quot;')}">
+  <h3>Caractéristiques</h3>
+  ${row('len','📏 Longueur',['','Courte','Moyenne','Longue'][dz.len],`Plus long = plus de places et de terrain (${c.plots} emplacements)`)}
+  ${row('height','⛰️ Hauteur',dz.height+' m',`Jusqu’à ${mx.height} m${has('extreme')?'':' (120 m avec la recherche « Ingénierie extrême »)'}`)}
+  ${row('loops','🌀 Loopings',dz.loops,`Jusqu’à ${mx.loops}`)}
+  <div class="kpis" style="margin-top:12px">
+    <div class="kpi"><div class="k">⚡ Frissons</div><div class="v">${c.exc.toFixed(1)}</div><div class="s"><span class="st ${cls}" style="margin:0">${lab}</span></div></div>
+    <div class="kpi"><div class="k">💶 Coût</div><div class="v">${fmt(c.cost)}</div><div class="s">Entretien ${fmt(c.upkeep*2*D().up)}/j</div></div>
+    <div class="kpi"><div class="k">👥 Capacité</div><div class="v">${c.cap} places</div><div class="s">${c.plots} emplacements · tour de ${c.dur} min</div></div></div>
+  <p class="sub">${c.exc>=12?'🤮 Attention : au-delà de 12 de frissons, certains visiteurs (hors ados) seront malades.':c.exc<7?'👨‍👩‍👧 Parfait pour les familles, les ados risquent de s’ennuyer.':'👍 Bon équilibre entre sensations et confort.'}</p>
+  <div class="sheetacts"><button class="btn sec" data-a="close">Annuler</button><button class="btn" data-a="dzBuild" ${c.plots>free||S.money<c.cost?'disabled':''}>${c.plots>free?'Pas assez de place':S.money<c.cost?'Pas assez d’argent':'🏗️ Construire ('+fmt(c.cost)+')'}</button></div>`;}
+function placeHTML(type){const it=type==='coaster'&&pendingCfg?{...CATALOG[type],...pendingCfg}:CATALOG[type];
+  return`<h2>📍 Où construire ${it.e} ${type==='coaster'&&pendingCfg?pendingCfg.name:it.name} ?</h2><div class="sub">Il faut ${it.plots} emplacement(s) libre(s) · ${fmt(it.cost)}</div><div class="cat" style="margin-top:12px">${owned().map(q=>{const t=TRAITS[q.trait],f=freeIn(q.i),ok=f>=it.plots,bon=(t.bonus&&t.bonus[type])||(t.shop&&it.t==='shop');
     return`<button class="ci${ok?'':' locked'}" data-a="buildAt" data-v="${type}" data-p="${q.i}" ${ok?'':'disabled'}><span class="e">${t.e}</span><b>${q.name}</b><span class="d">${t.n} · ${f} / ${q.size} libres</span>${bon?`<span><span class="tag gold">Bonus ici !</span></span>`:''}${t.upkeep?`<span class="d">⚠️ Entretien +25 %</span>`:''}</button>`;}).join('')}</div>
   <div class="sheetacts"><button class="btn sec" data-a="close">Annuler</button></div>`;}
+function rdHTML(){
+  const rd=S.rd,L=RDL[rd.level];let h=goalBar();
+  h+=`<div class="panel"><h3>Budget de recherche</h3><div class="acts">${RDL.map((l,i)=>`<button class="btn sm ${rd.level===i?'teal':'sec'}" data-a="rdLevel" data-v="${i}">${l.n}${l.cost?` · ${fmt(l.cost)}/j`:''}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:8px">${rd.level?`${L.pts} point(s) de recherche par jour.`:'Aucune recherche en cours : choisis un budget.'}</p>`;
+  if(rd.cur){const T=TECHS[rd.cur];h+=`<div class="need"><div class="h"><span>${T.e} En cours : ${T.n}</span><span>${Math.floor(rd.prog)} / ${T.pts} pts${rd.level?` · ~${Math.ceil((T.pts-rd.prog)/L.pts)} j`:''}</span></div>${barH(rd.prog/T.pts*100,'#4cc9f0')}</div>`;}
+  h+='</div><div class="panel"><h3>Technologies</h3>';
+  for(const k in TECHS){const T=TECHS[k],done=rd.done.includes(k),cur=rd.cur===k;
+    h+=`<div class="row"><div class="l">${T.e} ${T.n}<small>${T.d} · ${T.pts} pts</small></div>${done?'<span class="st ok">✓ Acquise</span>':cur?'<span class="st wait">En cours</span>':`<button class="btn sm teal" data-a="rdPick" data-v="${k}">Rechercher</button>`}</div>`;}
+  h+='</div>';
+  if(has('fastpass'))h+=`<div class="panel"><h3>🎫 Coupe-file</h3><div class="row"><div class="l">Prix du coupe-file<small>Acheté à l’entrée par une partie des visiteurs (surtout les ados). Plus il est cher, moins il se vend.</small></div>${stp2('fp',S.fpPrice+' €')}</div></div>`;
+  return h;
+}
+const canExpand=()=>S.money>=EXPAND_COST+20000&&S.rating>=60&&S.totalGuests>=1000&&PARKS.length<Object.keys(LOCS).length;
+function groupHTML(){
+  const all=PARKS.map((q,i)=>i===CUR?S:q).filter(Boolean);
+  let h=goalBar()+`<div class="kpis"><div class="kpi"><div class="k">🏢 Parcs</div><div class="v">${all.length}</div></div>
+    <div class="kpi"><div class="k">💰 Trésorerie du groupe</div><div class="v">${fmt(all.reduce((a,q)=>a+(q.money||0),0))}</div></div>
+    <div class="kpi"><div class="k">👥 Visiteurs cumulés</div><div class="v">${num(all.reduce((a,q)=>a+(q.totalGuests||0),0))}</div></div></div>`;
+  h+='<div class="cards">';
+  PARKS.forEach((q0,i)=>{const q=i===CUR?S:q0;if(!q)return;const T=THEMES[q.theme]||THEMES.classic,L=LOCS[q.loc]||LOCS.liege,hs=(q.history||[]).slice(-5),avg=hs.length?hs.reduce((a,x)=>a+x.inc-x.exp,0)/hs.length:0;
+    h+=`<div class="card"><div class="ch"><span class="big">${T.e}</span><div><b>${q.name}</b><span class="sub">${L.e} ${L.n} · ${T.n}</span></div>${i===CUR?'<span class="st ok">Tu le gères</span>':'<span class="st wait">Directeur</span>'}</div>
+      <div class="mini"><span>Trésorerie</span><b>${fmt(q.money||0)}</b></div>
+      <div class="mini"><span>Note</span><b>${q.rating} %</b></div>
+      <div class="mini"><span>Résultat moyen / jour</span><b class="${avg>=0?'pos':'negt'}">${fmt(avg)}</b></div>
+      <div class="mini"><span>Attractions</span><b>${q.b.filter(b=>CATALOG[b.type].t==='ride').length} · ${SEASONS[seasonOf(q.day)].e} an ${yearOf(q.day)}</b></div>
+      ${i===CUR?'<p class="sub">Les autres parcs sont gérés par un directeur : ils gagnent chaque jour 85 % de leur résultat moyen récent.</p>':`<div class="acts"><button class="btn sm teal" data-a="switchPark" data-v="${i}">🎮 Gérer ce parc</button><button class="btn sm sec" data-a="sendTo" data-v="${i}" ${S.money<10000?'disabled':''}>Envoyer 10 000 €</button><button class="btn sm sec" data-a="takeFrom" data-v="${i}" ${(q.money||0)<10000?'disabled':''}>Rapatrier 10 000 €</button></div>`}</div>`;});
+  h+='</div>';
+  const ok=canExpand();
+  h+=`<div class="panel" style="margin-top:12px"><h3>Ouvrir un nouveau parc</h3><p class="sub">Conditions : ${fmt(EXPAND_COST+20000)} en caisse ${S.money>=EXPAND_COST+20000?'✅':'❌'} · note de 60 % ${S.rating>=60?'✅':'❌'} · 1 000 visiteurs accueillis ${S.totalGuests>=1000?'✅':'❌'}. La mise de fonds est de ${fmt(EXPAND_COST)}.</p>
+    <button class="btn" data-a="expand" ${ok?'':'disabled'}>🏢 Ouvrir un nouveau parc</button></div>`;
+  return h;
+}
+function staffHTML(){
+  let h=goalBar();
+  h+=`<div class="kpis">${Object.entries(ROLES).map(([k,r])=>`<div class="kpi"><div class="k">${r.e} ${r.p}</div><div class="v">${S.staff.filter(m=>m.role===k).length}</div><div class="s">Efficacité ${power(k).toFixed(1)}</div></div>`).join('')}
+    <div class="kpi"><div class="k">💶 Masse salariale</div><div class="v">${fmt(staffWages())}</div><div class="s">par jour</div></div>
+    <div class="kpi"><div class="k">😊 Moral moyen</div><div class="v">${S.staff.length?Math.round(S.staff.reduce((a,m)=>a+m.morale,0)/S.staff.length)+' %':'—'}</div><div class="s">${S.strike?'✊ En grève aujourd’hui':'Personne en grève'}</div></div></div>`;
+  h+='<div class="panel"><h3>Ton équipe</h3>';
+  if(!S.staff.length)h+='<p class="sub">Personne pour l’instant. Embauche quelqu’un parmi les candidats ci-dessous.</p>';
+  else{h+='<div class="cards">';for(const m of S.staff){const r=ROLES[m.role],fair=fairWage(m);
+    h+=`<div class="card"><div class="ch"><span class="big">${r.e}</span><div><b>${m.name}</b><span class="lvl">${stars(m.lvl)} ${r.n}</span></div><span class="st ${m.morale<35?'ko':m.morale<60?'wait':'ok'}">Moral ${m.morale} %</span></div>
+      ${barH(m.morale)}
+      <div class="mini"><span>Salaire</span><b>${fmt(m.salary)} / jour <span class="sub">(marché : ${fmt(fair)})</span></b></div>
+      <div class="acts">${m.lvl<3?`<button class="btn sm" data-a="train" data-v="${m.id}">🎓 Former (${fmt(400*m.lvl)})</button>`:''}<button class="btn sm teal" data-a="raise" data-v="${m.id}">💶 +10 %</button>
+      <button class="btn sm ${confirmKey==='fire'+m.id?'red':'sec'}" data-a="fire" data-v="${m.id}">${confirmKey==='fire'+m.id?'Confirmer ?':'Licencier'}</button></div></div>`;}h+='</div>';}
+  h+='</div><div class="panel"><h3>Candidats du jour</h3><p class="sub">Nouveaux candidats chaque matin. Un salaire au-dessus du marché garde le moral au beau fixe.</p>';
+  for(const c of S.cands||[]){const r=ROLES[c.role];h+=`<div class="row"><div class="l">${r.e} ${c.name} <span class="lvl" style="display:inline">${stars(c.lvl)}</span><small>${r.n} — ${r.d} · demande ${fmt(c.salary)} / jour</small></div><button class="btn sm teal" data-a="hire" data-v="${c.id}">Embaucher</button></div>`;}
+  return h+'</div>';
+}
 function landHTML(){
   const L=LOC();let h=goalBar()+`<div class="toolbar"><div class="info">${L.e} ${L.n} (${L.r}) · ${usedPlots()} / ${capacity()} emplacements utilisés</div></div>`;
   h+='<div class="panel"><h3>Tes terrains</h3><div class="cards">';
   for(const q of owned()){const t=TRAITS[q.trait],bs=S.b.filter(b=>b.parcel===q.i),u=usedIn(q.i);
     h+=`<div class="card"><div class="ch"><span class="big">${t.e}</span><div><b>${q.name}</b><span class="sub">${t.n}</span></div><span class="st ${u>=q.size?'ko':'ok'}">${u} / ${q.size}</span></div>
       ${barH(u/q.size*100,'#4cc9f0')}<div class="sub">${t.d}</div>
-      <div>${bs.length?bs.map(b=>`<span class="tag">${C(b).e} ${C(b).name}</span>`).join(''):'<span class="sub">Rien de construit ici pour l’instant.</span>'}</div></div>`;}
+      <div>${bs.length?bs.map(b=>`<span class="tag">${C(b).e} ${bname(b)}</span>`).join(''):'<span class="sub">Rien de construit ici pour l’instant.</span>'}</div></div>`;}
   h+='</div></div><div class="panel"><h3>Terrains à vendre</h3>';
   const forSale=L.parcels.map((_,i)=>parcelDef(i)).filter(q=>!S.parcels.includes(q.i));
   h+=forSale.length?forSale.map(q=>{const t=TRAITS[q.trait];return`<div class="row"><div class="l">${t.e} ${q.name} <span class="sub">· ${q.size} emplacements</span><small>${t.n} — ${t.d}</small></div><button class="btn sm ${S.money<q.price?'sec':''}" data-a="buyLand" data-v="${q.i}" ${S.money<q.price?'disabled':''}>${fmt(q.price)}</button></div>`;}).join(''):'<p class="sub">Tu possèdes tous les terrains de la région !</p>';
   return h+'</div>';
 }
 function dayHTML(){
-  const T=S.today,inc=dayIncome(),exp=T.upkeep+T.wages+T.marketing+T.interest,res=inc-exp,F=WEATHER[S.forecast];
+  const T=S.today,inc=dayIncome(),exp=T.upkeep+T.wages+T.marketing+T.interest+(T.rd||0),res=inc-exp,F=WEATHER[S.forecast];
   return`<h2>🌙 Fin du jour ${S.day}</h2><div class="sub">${num(T.guests)} visiteurs · note du parc ${S.rating} %</div>
-  <h3>Recettes</h3><table><tr><td>🎟️ Entrées</td><td>${fmt(T.entry)}</td></tr><tr><td>🍔 Boutiques</td><td>${fmt(T.shops)}</td></tr><tr><td><b>Total</b></td><td class="pos">${fmt(inc)}</td></tr></table>
-  <h3>Charges</h3><table><tr><td>🛠️ Entretien et frais fixes</td><td>${fmt(T.upkeep)}</td></tr><tr><td>👷 Salaires</td><td>${fmt(T.wages)}</td></tr><tr><td>📣 Publicité</td><td>${fmt(T.marketing)}</td></tr><tr><td>🏦 Intérêts</td><td>${fmt(T.interest)}</td></tr><tr><td><b>Total</b></td><td class="negt">${fmt(exp)}</td></tr></table>
+  <h3>Recettes</h3><table><tr><td>🎟️ Entrées</td><td>${fmt(T.entry)}</td></tr><tr><td>🍔 Boutiques</td><td>${fmt(T.shops)}</td></tr>${T.rides?`<tr><td>🎫 Coupe-file</td><td>${fmt(T.rides)}</td></tr>`:''}<tr><td><b>Total</b></td><td class="pos">${fmt(inc)}</td></tr></table>
+  <h3>Charges</h3><table><tr><td>🛠️ Entretien, frais fixes et frais par visiteur</td><td>${fmt(T.upkeep)}</td></tr><tr><td>👷 Salaires</td><td>${fmt(T.wages)}</td></tr><tr><td>📣 Publicité</td><td>${fmt(T.marketing)}</td></tr>${T.rd?`<tr><td>🔬 Recherche</td><td>${fmt(T.rd)}</td></tr>`:''}<tr><td>🏦 Intérêts</td><td>${fmt(T.interest)}</td></tr><tr><td><b>Total</b></td><td class="negt">${fmt(exp)}</td></tr></table>
   <div class="kpis" style="margin-top:14px"><div class="kpi"><div class="k">Résultat d’exploitation</div><div class="v ${res>=0?'pos':'negt'}">${fmt(res)}</div></div>
-  <div class="kpi"><div class="k">Investissements</div><div class="v">${fmt(T.build)}</div></div><div class="kpi"><div class="k">Demain : ${DOW[dowOf(S.day+1)]}${isHoliday(S.day+1)?' 🏖️':''}</div><div class="v">${F.e} ${F.n}</div></div></div>
+  <div class="kpi"><div class="k">Investissements</div><div class="v">${fmt(T.build)}</div></div><div class="kpi"><div class="k">Demain : ${S.day%YEAR_LEN===0?'❄️ fermeture hivernale':DOW[dowOf(S.day+1)]+(isHoliday(S.day+1)?' 🏖️':'')}</div><div class="v">${F.e} ${F.n}</div></div></div>
   <p class="sub">${S.money<0?'⚠️ Trésorerie négative : tu ne peux plus investir. Ajuste tes prix, réduis le personnel ou emprunte.':'Trésorerie : <b>'+fmt(S.money)+'</b>'}</p>
   <div class="sheetacts"><button class="btn" data-a="next">☀️ Jour suivant</button></div>`;
 }
@@ -870,28 +1039,28 @@ function offerHTML(){const o=S.offer;if(!o)return'';const def=OFFERS.find(x=>x.i
   <div class="sheetacts"><button class="btn sec" data-a="offerNo">Refuser</button><button class="btn teal" data-a="offerYes">Accepter</button></div>`;}
 function bankruptHTML(){return`<h2>💀 Faillite !</h2><p>Ta trésorerie est tombée à <b>${fmt(S.money)}</b>. La banque reprend le parc après ${S.day} jours d’exploitation.</p>
   <p class="sub">Visiteurs accueillis : ${num(S.totalGuests)} · objectifs atteints : ${S.goal}/${GOALS.length}</p><div class="sheetacts"><button class="btn red" data-a="newOk">Recommencer une partie</button></div>`;}
-function newWiz(){return{step:1,name:'',theme:'classic',loc:null,diff:'normal',parcel:null};}
+function newWiz(expand){return{step:1,name:'',theme:'classic',loc:null,diff:expand?S.diff:'normal',parcel:null,expand:!!expand};}
 let wiz=newWiz();
 const stars5=v=>'★'.repeat(Math.round(v))+'☆'.repeat(5-Math.round(v));
 function welcomeHTML(){
   const st=wiz.step,bar=`<div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=st?'on':''}"></i>`).join('')}</div>`;
-  if(st===1)return`<h2>🎡 Crée ton parc d’attractions</h2><div class="sub">Étape 1 sur 4 · Nom et thème</div>${bar}
+  if(st===1)return`<h2>${wiz.expand?'🏢 Ouvre un nouveau parc':'🎡 Crée ton parc d’attractions'}</h2><div class="sub">Étape 1 · Nom et thème${wiz.expand?` · mise de fonds ${fmt(EXPAND_COST)} prélevée sur ${S.name}`:''}</div>${bar}
     <h3>Nom du parc</h3><input class="txt" id="wzName" maxlength="28" placeholder="Ex. : Vincentland" value="${(wiz.name||'').replace(/"/g,'&quot;')}">
     <h3>Thème</h3><div class="cat">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${wiz.theme===k?' sel':''}" data-a="wz" data-k="theme" data-v="${k}"><span class="e">${t.e}</span><b>${t.n}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base||CATALOG[r].name).join(', ')}</span></button>`).join('')}</div>
     <div class="sheetacts"><button class="btn teal" data-a="wzStep" data-v="2">Suivant →</button></div>`;
-  if(st===2)return`<h2>📍 Où construire ton parc ?</h2><div class="sub">Étape 2 sur 4 · Emplacement</div>${bar}
-    <div class="cat">${Object.entries(LOCS).map(([k,l])=>{const cheap=Math.min(...l.parcels.map((_,i)=>parcelDef(i,k).price));return`<button class="ci${wiz.loc===k?' sel':''}" data-a="wz" data-k="loc" data-v="${k}"><span class="e">${l.e}</span><b>${l.n} <span class="sub">· ${l.r}</span></b><span class="d">${l.d}</span>
+  if(st===2)return`<h2>📍 Où construire ton parc ?</h2><div class="sub">Étape 2 · Emplacement</div>${bar}
+    <div class="cat">${Object.entries(LOCS).map(([k,l])=>{const cheap=Math.min(...l.parcels.map((_,i)=>parcelDef(i,k).price)),taken=wiz.expand&&PARKS.some((q,i)=>(i===CUR?S:q)&&(i===CUR?S:q).loc===k);return`<button class="ci${wiz.loc===k?' sel':''}${taken?' locked':''}" data-a="wz" data-k="loc" data-v="${k}" ${taken?'disabled':''}>${taken?'<span class="tag gold">Déjà un parc ici</span>':''}<span class="e">${l.e}</span><b>${l.n} <span class="sub">· ${l.r}</span></b><span class="d">${l.d}</span>
       <span class="d">👥 Population ${stars5(l.pop*3.2)}<br>🏖️ Tourisme ${stars5(l.tour*3.2)}<br>💶 Terrains dès ${fmt(cheap)}<br>🌦️ Soleil ${Math.round(l.w[0]*100)} % · pluie ${Math.round(l.w[2]*100)} %<br>🏰 Rival : ${l.rival.name} (${l.rival.rating} %)</span></button>`;}).join('')}</div>
-    <div class="sheetacts"><button class="btn sec" data-a="wzStep" data-v="1">← Retour</button><button class="btn teal" data-a="wzStep" data-v="3" ${wiz.loc?'':'disabled'}>Suivant →</button></div>`;
-  if(st===3)return`<h2>🎚️ Choisis ta difficulté</h2><div class="sub">Étape 3 sur 4 · Budget de départ</div>${bar}
+    <div class="sheetacts"><button class="btn sec" data-a="wzStep" data-v="1">← Retour</button><button class="btn teal" data-a="wzStep" data-v="${wiz.expand?4:3}" ${wiz.loc?'':'disabled'}>Suivant →</button></div>`;
+  if(st===3)return`<h2>🎚️ Choisis ta difficulté</h2><div class="sub">Étape 3 · Budget de départ</div>${bar}
     <div class="cat">${Object.entries(DIFFS).map(([k,d])=>`<button class="ci${wiz.diff===k?' sel':''}" data-a="wz" data-k="diff" data-v="${k}"><span class="e">${d.e}</span><b>${d.n}</b><span class="d">${d.d}</span><span class="d">Faillite sous ${fmt(d.bank)}</span></button>`).join('')}</div>
     <div class="sheetacts"><button class="btn sec" data-a="wzStep" data-v="2">← Retour</button><button class="btn teal" data-a="wzStep" data-v="4">Suivant →</button></div>`;
-  const L=LOCS[wiz.loc],money=DIFFS[wiz.diff].money;
-  return`<h2>🗺️ Achète ton premier terrain</h2><div class="sub">Étape 4 sur 4 · ${L.e} ${L.n} · budget ${fmt(money)}</div>${bar}
+  const L=LOCS[wiz.loc],money=wiz.expand?EXPAND_COST:DIFFS[wiz.diff].money;
+  return`<h2>🗺️ Achète ton premier terrain</h2><div class="sub">Dernière étape · ${L.e} ${L.n} · budget ${fmt(money)}</div>${bar}
     <p class="sub">Tu pourras acheter d’autres terrains plus tard. Garde de quoi construire tes premières attractions (au moins ~6 000 €).</p>
     <div class="cat">${L.parcels.map((_,i)=>{const q=parcelDef(i,wiz.loc),t=TRAITS[q.trait],left=money-q.price,ok=left>=3000;
       return`<button class="ci${wiz.parcel===i?' sel':''}${ok?'':' locked'}" data-a="wz" data-k="parcel" data-v="${i}" ${ok?'':'disabled'}><span class="e">${t.e}</span><b>${q.name}</b><span class="d">${t.n} · ${q.size} emplacements</span><span class="d">${t.d}</span><span class="d"><b style="color:var(--gold)">${fmt(q.price)}</b> · reste ${fmt(left)}</span></button>`;}).join('')}</div>
-    <div class="sheetacts"><button class="btn sec" data-a="wzStep" data-v="3">← Retour</button><button class="btn" data-a="wzStart" ${wiz.parcel==null?'disabled':''}>🎉 Ouvrir le parc</button></div>`;
+    <div class="sheetacts"><button class="btn sec" data-a="wzStep" data-v="${wiz.expand?2:3}">← Retour</button><button class="btn" data-a="wzStart" ${wiz.parcel==null?'disabled':''}>🎉 Ouvrir le parc</button></div>`;
 }
 function oldWelcomeHTML(){
   return`<h2>🎡 Bienvenue dans Parc Mania !</h2>
@@ -915,16 +1084,53 @@ function toast(s){const d=document.createElement('div');d.className='toast';d.te
   const all=$('#toasts').children;if(all.length>3)all[0].remove();setTimeout(()=>d.remove(),3200);}
 
 document.addEventListener('click',e=>{
-  const el=e.target.closest('[data-a]');if(!el||el.disabled)return;
+  const el=e.target.closest('[data-a]');if(!el||el.disabled)return;sfx.click();
   if(el.closest('#speed'))return;
   act(el.dataset.a,el.dataset.v,el);
 });
-$('#wrap').addEventListener('click',e=>{if(e.target.id==='wrap'&&sheetFn!==dayHTML&&sheetFn!==welcomeHTML&&sheetFn!==bankruptHTML&&sheetFn!==offerHTML)closeSheet();});
+$('#wrap').addEventListener('click',e=>{if(e.target.id==='wrap'&&sheetFn!==dayHTML&&sheetFn!==yearHTML&&(sheetFn!==welcomeHTML||wiz.expand)&&sheetFn!==bankruptHTML&&sheetFn!==offerHTML)closeSheet();});
+$('#sndBtn').addEventListener('click',()=>{snd=(snd+2)%3;try{localStorage.setItem('pm_snd',snd);}catch(_){}if(snd)ac();if(actx&&musicGain)musicGain.gain.value=snd===2?.25:0;sndLabel();toast(['🔇 Son coupé','🔊 Effets sonores seuls','🎵 Musique et effets'][snd]);});
 $('#speed').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;speed=+b.dataset.s;[...$('#speed').children].forEach(x=>x.classList.toggle('on',x===b));});
-document.addEventListener('input',e=>{if(e.target.id==='wzName')wiz.name=e.target.value;});
-document.addEventListener('pointerdown',()=>{holding=true;});
+document.addEventListener('input',e=>{if(e.target.id==='wzName')wiz.name=e.target.value;if(e.target.id==='dzName'&&dz)dz.name=e.target.value;});
+document.addEventListener('pointerdown',()=>{holding=true;if(snd)ac();});
 const unhold=()=>setTimeout(()=>{holding=false;},400);
 document.addEventListener('pointerup',unhold);document.addEventListener('pointercancel',unhold);
+
+// ====================== SON ======================
+let snd=2;try{const v=localStorage.getItem('pm_snd');if(v!=null)snd=+v;}catch(_){}
+let actx=null,master=null,musicGain=null,lastCash=0;
+function ac(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();master=actx.createGain();master.gain.value=.55;master.connect(actx.destination);
+  musicGain=actx.createGain();musicGain.gain.value=.25;musicGain.connect(master);}catch(_){return null;}}if(actx.state==='suspended')actx.resume();return actx;}
+function note(f,t0,d,type,vol,dest){if(!actx)return;const o=actx.createOscillator(),g=actx.createGain();o.type=type||'sine';o.frequency.value=f;
+  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+d);o.connect(g);g.connect(dest||master);o.start(t0);o.stop(t0+d+.05);}
+const mid=n=>440*Math.pow(2,(n-69)/12);
+const sfx={
+  click(){if(snd<1||!ac())return;note(1400,actx.currentTime,.04,'triangle',.035);},
+  cash(){if(snd<1||!actx||modal)return;const t=performance.now();if(t-lastCash<900)return;lastCash=t;const n=actx.currentTime;note(1318,n,.07,'square',.025);note(1760,n+.06,.16,'square',.025);},
+  goal(){if(snd<1||!ac())return;const n=actx.currentTime;[72,76,79,84].forEach((m,i)=>note(mid(m),n+i*.11,.4,'triangle',.12));note(mid(48),n,.8,'triangle',.1);},
+  build(){if(snd<1||!ac())return;const n=actx.currentTime;[55,60,64,67].forEach((m,i)=>note(mid(m),n+i*.07,.25,'square',.04));},
+  bad(){if(snd<1||!actx)return;const n=actx.currentTime;note(mid(52),n,.25,'sawtooth',.05);note(mid(47),n+.18,.4,'sawtooth',.05);},
+};
+const MUS={
+  classic:{r:60,sc:[0,2,4,5,7,9,11],bpm:132,bar:6,w:'triangle',bw:'triangle',dens:.75},
+  pirates:{r:62,sc:[0,2,3,5,7,9,10],bpm:138,bar:6,w:'triangle',bw:'sawtooth',dens:.8},
+  western:{r:55,sc:[0,2,4,7,9],bpm:112,bar:8,w:'triangle',bw:'triangle',dens:.6},
+  fantasy:{r:65,sc:[0,2,4,6,7,9,11],bpm:92,bar:8,w:'sine',bw:'sine',dens:.85,hi:12},
+  space:{r:57,sc:[0,2,3,5,7,8,10],bpm:124,bar:8,w:'square',bw:'sawtooth',dens:.9,mv:.035},
+  jungle:{r:57,sc:[0,3,5,7,10],bpm:116,bar:8,w:'triangle',bw:'triangle',dens:.7},
+  horror:{r:50,sc:[0,1,4,5,7,8,11],bpm:66,bar:8,w:'sine',bw:'sawtooth',dens:.45,drone:1},
+};
+let mNext=0,mStep=0,mMel=4;
+function playStep(m,i,t,sp){
+  const bar=m.bar,pos=i%bar,prog=[0,3,4,5][Math.floor(i/bar)%4],len=m.sc.length;
+  const deg=k=>m.r+m.sc[((k%len)+len)%len]+12*Math.floor(k/len);
+  if(pos===0){note(mid(deg(prog)-24),t,sp*bar*.8,m.bw,m.drone?.06:.12,musicGain);if(m.drone)note(mid(m.r-36),t,sp*bar*1.1,'sine',.18,musicGain);}
+  if(!m.drone&&pos===Math.floor(bar/2))note(mid(deg(prog+2)-12),t,sp*1.5,m.bw,.06,musicGain);
+  if(Math.random()<m.dens){mMel=clamp(mMel+Math.round(rnd(-2.4,2.4)),prog-1,prog+8);note(mid(deg(mMel)+(m.hi||0)),t,sp*(m.drone?3:1.5),m.w,m.mv||.07,musicGain);}
+}
+setInterval(()=>{if(snd<2||!actx||document.hidden||!S)return;const m=MUS[S.theme]||MUS.classic,sp=60/m.bpm/2,now=actx.currentTime;
+  if(mNext<now)mNext=now+.05;while(mNext<now+.35){playStep(m,mStep++,mNext,sp);mNext+=sp;}},120);
+function sndLabel(){$('#sndBtn').textContent=['🔇','🔊','🎵'][snd];$('#sndBtn').title=['Son coupé','Effets sonores','Musique + effets'][snd];}
 
 // ====================== BOUCLE ======================
 function loop(ts){
@@ -935,13 +1141,19 @@ function loop(ts){
 setInterval(()=>{if(!S)return;header();if(!holding&&!modal)render();},900);
 
 // ====================== SAUVEGARDE ======================
-function save(){try{const o={...S,b:S.b.map(b=>({id:b.id,type:b.type,lvl:b.lvl,price:b.price,visitors:b.visitors,revenue:b.revenue,parcel:b.parcel,rel:b.rel,broken:b.broken,repairT:b.repairT,age:b.age||0,yRev:b.yRev??null,yVis:b.yVis??null}))};localStorage.setItem(SAVE_KEY,JSON.stringify(o));}catch(_){}}
-function load(){try{const s=localStorage.getItem(SAVE_KEY);if(!s)return false;const o=JSON.parse(s);if(!o||!Array.isArray(o.b))return false;
-  S=o;applyTheme();S.reviews=S.reviews||[];S.diff=S.diff||'normal';S.rival=S.rival||{name:'WonderLand',rating:58};S.offer=null;S.privateAt=null;S.time=OPEN;S.today=newDay();S.series=[];S.b.forEach(b=>{rtInit(b);b.todayVis=0;b.todayRev=0;});guests=[];return true;}catch(_){return false;}}
+let PARKS=[],CUR=0;
+const EXPAND_COST=40000;
+function strip(x){return{...x,offer:null,b:x.b.map(b=>({id:b.id,type:b.type,lvl:b.lvl,price:b.price,visitors:b.visitors,revenue:b.revenue,cfg:b.cfg,cname:b.cname,parcel:b.parcel,rel:b.rel,broken:b.broken,repairT:b.repairT,age:b.age||0,yRev:b.yRev??null,yVis:b.yVis??null}))};}
+function save(){try{PARKS[CUR]=strip(S);localStorage.setItem(SAVE_KEY,JSON.stringify({v:4,cur:CUR,parks:PARKS}));}catch(_){}}
+function hydrate(o){S=o;S.rd=S.rd||{level:0,cur:null,prog:0,done:[]};S.fpPrice=S.fpPrice||10;if(!S.staff){S.staff=[];for(const[k,r]of[['janitors','janitor'],['mechanics','mechanic'],['animators','animator']])for(let i=0;i<(S[k]||0);i++){const m={id:S.nid++,role:r,lvl:1,name:pick(FIRST)+' '+String.fromCharCode(65+(Math.random()*26|0))+'.',morale:70};m.salary=fairWage(m);S.staff.push(m);}}applyTheme();if(!S.cands||!S.cands.length)S.cands=[makeCand(),makeCand(),makeCand(),makeCand()];S.reviews=S.reviews||[];S.diff=S.diff||'normal';S.rival=S.rival||{name:'WonderLand',rating:58};S.offer=null;S.privateAt=null;S.time=OPEN;S.today=newDay();S.series=[];S.b.forEach(b=>{rtInit(b);b.todayVis=0;b.todayRev=0;});guests=[];}
+function load(){try{let raw=localStorage.getItem(SAVE_KEY),data=null;
+  if(raw)data=JSON.parse(raw);else{const old=localStorage.getItem('parcmania_v3');if(old)data={cur:0,parks:[JSON.parse(old)]};}
+  if(!data||!Array.isArray(data.parks)||!data.parks.length)return false;PARKS=data.parks;CUR=clamp(data.cur||0,0,PARKS.length-1);hydrate(PARKS[CUR]);return true;}catch(_){return false;}}
+function switchPark(i){if(i===CUR)return;save();CUR=i;hydrate(PARKS[i]);tab='home';closeSheet();render();toast(`${THEMES[S.theme].e} Bienvenue à ${S.name} (${LOC().n})`);}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&S)save();});
 
-if(!load())newGame();
-render();
+if(!load()){newGame();PARKS=[null];CUR=0;}
+sndLabel();render();
 if(!S.seenWelcome)openSheet(welcomeHTML);
 requestAnimationFrame(loop);
 </script>
