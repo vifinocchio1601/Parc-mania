@@ -249,6 +249,8 @@ const THEMES={
     names:{teacups:'Les Soucoupes folles',carousel:'Le Carrousel des Planètes',bumper:'Les Astro-Karts',ferris:'La Roue orbitale',haunted:'La Station abandonnée',flume:'La Rivière de Mars',drop:'La Chute Zéro-G',coaster:'L’Hyperespace',rocket:'Le Big Bang'}},
   jungle:{n:'Jungle préhistorique',e:'🦖',d:'Dinosaures et volcans : de l’aventure pour petits et grands.',seg:{family:1.2,teen:1.2,senior:.85},bonus:['flume','coaster','haunted'],decor:{name:'Squelette de diplodocus',e:'🦕',cost:3500,pts:26,upkeep:18},
     names:{teacups:'Les Œufs tournants',carousel:'Le Carrousel des Dinos',bumper:'Les Raptors tamponneurs',ferris:'La Roue du Volcan',haunted:'La Grotte du T-Rex',flume:'Les Rapides du Volcan',drop:'Le Geyser',coaster:'Le Raptor Express',rocket:'Le Météore'}},
+  horror:{n:'Horreur',e:'🧟',d:'Frissons et cauchemars : les ados adorent, les familles hésitent. Le parc s’anime le soir (+40 % de visiteurs après 17h).',seg:{family:.7,teen:1.6,senior:.7},bonus:['haunted','drop','coaster'],decor:{name:'Cimetière hanté',e:'🪦',cost:3500,pts:26,upkeep:18},
+    names:{teacups:'Les Cercueils tournants',carousel:'Le Carrousel macabre',bumper:'Les Corbillards tamponneurs',ferris:'La Roue des Damnés',haunted:'Le Manoir de l’Effroi',flume:'La Rivière des Noyés',drop:'La Tour du Vampire',coaster:'Le Cauchemar',rocket:'L’Apocalypse'}},
 };
 const TRAITS={
   flat:{n:'Plaine',e:'🟩',price:.9,d:'Terrain plat et bon marché, sans bonus.'},
@@ -352,7 +354,7 @@ function arrivalRate(){
   const fair=fairEntry();
   const pf=S.entry<=fair?1+(fair-S.entry)/fair*.3:Math.max(0,1-(S.entry-fair)/fair*1.4);
   const tf=clamp(1-((S.time-13*60)/(6*60))**2*.6,.3,1);
-  return Math.pow(Math.min(ap,80)/80,.85)*2.6*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*compF()*(S.rivalPromo?.85:1)*LOC().pop*(dowOf(S.day)>=5||isHoliday(S.day)?LOC().tour:1)*(1+Math.max(0,...owned().map(q=>TRAITS[q.trait].arr||0)))*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
+  return Math.pow(Math.min(ap,80)/80,.85)*2.6*(.35+S.rating/100*.9)*pf*(1+marketingBoost())*(S.press?1.4:1)*WEATHER[S.weather].arr*DOWM[dowOf(S.day)]*(isHoliday(S.day)?1.35:1)*compF()*(S.theme==='horror'&&S.time>=17*60?1.4:1)*(S.rivalPromo?.85:1)*LOC().pop*(dowOf(S.day)>=5||isHoliday(S.day)?LOC().tour:1)*(1+Math.max(0,...owned().map(q=>TRAITS[q.trait].arr||0)))*(S.buzz>0?1.5:1)*(S.concert?1.6:1)*tf;
 }
 function segWeights(){const w={};for(const k in SEGS){let a=1;for(const b of rides())if(!b.broken)a+=exc(b)*aff(k,exc(b));w[k]=SEGS[k].share*a*THEMES[S.theme||'classic'].seg[k]*LOC().seg[k]*(k==='family'&&isHoliday(S.day)?1.5:1)*(k==='teen'&&dowOf(S.day)===2?1.4:1);}return w;}
 function spawn(){
@@ -586,6 +588,8 @@ function act(a,v,el){
     case'tab':tab=v;confirmKey=null;break;
     case'catalog':openSheet(()=>catalogHTML(v));return;
     case'build':build(v);return;
+    case'rebrandMenu':openSheet(rebrandHTML);return;
+    case'rebrand':if(v===S.theme){closeSheet();return;}if(spend(5000)){const old=THEMES[S.theme].n;S.theme=v;applyTheme();calcRating();news(`🎭 Nouveau thème : ${THEMES[v].e} ${THEMES[v].n} (fini, ${old.toLowerCase()} !). Les attractions sont renommées.`);toast(`🎭 Bienvenue dans l’univers ${THEMES[v].n}`);}closeSheet();render();return;
     case'buildAt':build(v,+el.dataset.p);return;
     case'buyLand':{const q=parcelDef(+v);if(S.parcels.includes(q.i))return;if(spend(q.price)){S.parcels.push(q.i);calcRating();news(`🗺️ Achat du terrain « ${q.name} » (${q.size} emplacements, ${TRAITS[q.trait].n.toLowerCase()}).`);toast(`🗺️ Nouveau terrain : ${q.name}`);}break;}
     case'wz':wiz[el.dataset.k]=el.dataset.k==='parcel'?+v:v;if(el.dataset.k==='loc')wiz.parcel=null;openSheet(welcomeHTML);return;
@@ -788,7 +792,7 @@ function parkHTML(){
   for(const k in DECOR){const d=DECOR[k],lock=S.totalGuests<(d.unlock||0);
     h+=`<div class="row" style="${lock?'opacity:.5':''}"><div class="l">${d.e} ${d.name}${k==='themed'?` <span class="tag gold">${THEMES[S.theme].e} Thème</span>`:''} <span class="sub">× ${S.decor[k]||0}</span><small>+${d.pts} pts de beauté · entretien ${d.upkeep} € / jour${lock?` · 🔒 ${d.unlock} visiteurs`:''}</small></div><button class="btn sm" data-a="decor" data-v="${k}">Acheter ${fmt(d.cost)}</button></div>`;}
   h+='</div>';
-  h+=`<div class="panel"><h3>Partie</h3><p class="sub">${THEMES[S.theme].e} <b>${S.name}</b> · thème ${THEMES[S.theme].n} · ${LOC().e} ${LOC().n} · difficulté <b>${D().e} ${D().n}</b> · faillite sous ${fmt(D().bank)} · sauvegarde automatique chaque soir sur cet appareil.</p><button class="btn ${confirmKey==='new'?'red':'sec'}" data-a="new">${confirmKey==='new'?'Oui, tout effacer et recommencer':'🔄 Nouvelle partie'}</button></div>`;
+  h+=`<div class="panel"><h3>Partie</h3><p class="sub">${THEMES[S.theme].e} <b>${S.name}</b> · thème ${THEMES[S.theme].n} · ${LOC().e} ${LOC().n} · difficulté <b>${D().e} ${D().n}</b> · faillite sous ${fmt(D().bank)} · sauvegarde automatique chaque soir sur cet appareil.</p><button class="btn teal" data-a="rebrandMenu" style="margin-right:8px">🎭 Changer de thème</button><button class="btn ${confirmKey==='new'?'red':'sec'}" data-a="new">${confirmKey==='new'?'Oui, tout effacer et recommencer':'🔄 Nouvelle partie'}</button></div>`;
   return h;
 }
 function finHTML(){
@@ -836,6 +840,9 @@ function catalogHTML(kind){
       ${lock?`<button class="btn sm sec" disabled>🔒 ${num(it.unlock)} visiteurs</button>`:`<button class="btn sm ${noRoom||noMoney?'sec':''}" data-a="build" data-v="${it.id}" ${noRoom||noMoney?'disabled':''}>${noRoom?'Pas assez de place':fmt(it.cost)}</button>`}</div>`;}).join('')}</div>
   <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;
 }
+function rebrandHTML(){return`<h2>🎭 Changer de thème</h2><div class="sub">Coût du changement : ${fmt(5000)} · tes attractions seront renommées et les bonus changeront.</div>
+  <div class="cat" style="margin-top:12px">${Object.entries(THEMES).map(([k,t])=>`<button class="ci${S.theme===k?' sel':''}" data-a="rebrand" data-v="${k}" ${S.theme!==k&&S.money<5000?'disabled':''}><span class="e">${t.e}</span><b>${t.n}${S.theme===k?' (actuel)':''}</b><span class="d">${t.d}</span><span class="d">⭐ Bonus : ${t.bonus.map(r=>(t.names&&t.names[r])||CATALOG[r].base).join(', ')}</span></button>`).join('')}</div>
+  <div class="sheetacts"><button class="btn sec" data-a="close">Fermer</button></div>`;}
 function placeHTML(type){const it=CATALOG[type];
   return`<h2>📍 Où construire ${it.e} ${it.name} ?</h2><div class="sub">Il faut ${it.plots} emplacement(s) libre(s) · ${fmt(it.cost)}</div><div class="cat" style="margin-top:12px">${owned().map(q=>{const t=TRAITS[q.trait],f=freeIn(q.i),ok=f>=it.plots,bon=(t.bonus&&t.bonus[type])||(t.shop&&it.t==='shop');
     return`<button class="ci${ok?'':' locked'}" data-a="buildAt" data-v="${type}" data-p="${q.i}" ${ok?'':'disabled'}><span class="e">${t.e}</span><b>${q.name}</b><span class="d">${t.n} · ${f} / ${q.size} libres</span>${bon?`<span><span class="tag gold">Bonus ici !</span></span>`:''}${t.upkeep?`<span class="d">⚠️ Entretien +25 %</span>`:''}</button>`;}).join('')}</div>

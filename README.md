@@ -5,7 +5,7 @@ Jeu de gestion de parc d'attractions en mode sombre, pensé pour iPad (fonctionn
 **Jouer :** https://vifinocchio1601.github.io/Parc-mania/
 
 ## Le jeu
-- Crée ton parc : choisis son nom, son thème (Pirates, Far West, Royaume enchanté, Galaxie, Jungle préhistorique, Fête foraine) et sa ville (Liège, Bruxelles, Ostende, Durbuy, Anvers, Lille)
+- Crée ton parc : choisis son nom, son thème (Pirates, Far West, Royaume enchanté, Galaxie, Jungle préhistorique, Horreur, Fête foraine) et sa ville (Liège, Bruxelles, Ostende, Durbuy, Anvers, Lille)
 - Achète des terrains aux atouts différents (bord de l’eau, forêt, colline, près d’une gare…) pour agrandir le parc
 - Construis des attractions et des boutiques, règle tes prix, améliore et rénove tes installations
 - Gère le personnel (agents d'entretien, mécaniciens, animateurs), la propreté et la beauté du parc
