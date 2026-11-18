@@ -2,7 +2,7 @@
 
 Jeu de gestion de parc d'attractions, pensé pour iPad (fonctionne dans n'importe quel navigateur).
 
-**Jouer :** https://vifinocchio1601.github.io/parc-mania/
+**Jouer :** https://vifinocchio1601.github.io/Parc-mania/
 
 ## Le jeu
 - Construis des attractions et des boutiques, règle tes prix, améliore et rénove tes installations
